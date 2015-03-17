@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<ivy-module version="1.0">
+  <info organisation="org.linkedtv" module="${ant.project.name}">
+    <license name="Apache 2.0"/>
+    <ivyauthor name="Babu - project LInkedTV" url="http://linkedtv.eu"/>
+    <description>
+        Media extractor plugin for linkedTV project
+    </description>
+  </info>
+
+  <configurations>
+    <include file="../../../ivy/ivy-configurations.xml"/>
+  </configurations>
+
+  <publications>
+    <!--get the artifact from our module name-->
+    <artifact conf="master"/>
+  </publications>
+
+  <dependencies>
+	<dependency org="org.jsoup" name="jsoup" rev="1.7.2"/>
+  </dependencies>
+  
+</ivy-module>

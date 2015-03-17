@@ -1,0 +1,22 @@
+<html>
+<head>
+</head>
+<body>
+
+function initPlayer(){                           
+                                mediaCollection.addMedia(1);
+                                            mediaCollection.addMediaStream(1, 1, "", "http://test/path/test1.mp4", "default");
+                                          if (!iPhoneUntil4)
+                                            mediaCollection.addMediaStream(1, 2, "", "http://test/path/test2.mp4", "default");
+                                mediaCollection.addMedia(0);
+                                    mediaCollection.addMediaStream(0, 1, "", "http://test/not/valid/path/test1.f4m", "akamai");
+}
+
+http://test/path/to/audio/audio.mp3
+
+http://test/not/valid/path/to/player.swf?streamer&amp;/audio/audio.mp3
+
+
+</body>
+</html>
+

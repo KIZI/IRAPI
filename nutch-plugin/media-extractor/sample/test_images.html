@@ -1,0 +1,40 @@
+<html>
+<head>
+</head>
+<body>
+text of the document
+<img src="http://www.valid.url/test11.jpg" alt="test11" height="55" width="98" title="test11 valid image, not small" >
+<img src="http://www.valid.url/test12.jpg" alt="test12" height="123" width="123" title="test12 valid image, not small" >
+
+<!-- not valid iages with not valid src ---->
+<img src="" alt="test21" height="444" width="442" title="not valid image - empty src attribute" >
+<img alt="test22" height="100" width="200" title="not valid image - no src attribute" >
+
+<!-- not valid images for small images filter ---->
+<img src="http://www.valid.url/test31.jpg" alt="test31" height="1" width="2" title="not valid image - too small" >
+<img src="http://www.valid.url/test32.jpg" alt="test32" height="1" width="2" title="not valid image - too small" >
+<img src="http://www.valid.url/test32.jpg" alt="test32" height="39" width="200" title="not valid image - too small" >
+<img src="http://www.valid.url/test32.jpg" alt="test32" height="300" width="39" title="not valid image - too small" >
+
+
+<!-- not valid images for pattern filter ---->
+<img src="http://www.valid.url/icon/test411.jpg" alt="tets411" height="100" width="100" title="not valid image -  pattern .*icon.*" >
+<img src="http://www.valid.url/icontest412.jpg" alt="tets412" height="100" width="100" title="not valid image -  pattern .*icon.*" >
+<img src="http://www.valid.url/ico/test42.jpg" alt="tets42" height="100" width="100" title="not valid image -  pattern .*/ico/.*" >
+<img src="http://www.valid.url/podcast/img/content_top.gif" alt="tets43" height="100" width="100" title="not valid image -  pattern:/content_top" >
+<img src="http://www.valid.url/podcast/img/download.jpg" alt="tets44" height="100" width="100" title="not valid image -  pattern:/img/download" >
+<img src="http://www.valid.url/podcast/img/tooltipp.jpg" alt="tets45" height="100" width="100" title="not valid image -  pattern:img/tooltipp" >
+<img src="http://www.valid.url/banner/logo_base.png" alt="tets46" height="100" width="100" title="not valid image -  pattern:banner" >
+<img src="http://www.valid.url/banner/ico_weather_small.png" alt="tets46" height="100" width="100" title="not valid image -  pattern:/ico_" >
+
+<!-- weight and height tests-->
+<img src="http://www.valid.url/img1.png" alt="tets51" title="valid image but nowhere width and heigth" >
+<img src="http://www.valid.url/img2.png" alt="tets51"  height="100%" width="100%" title="valid image but nowhere width and heigth" >
+
+<!-- cleanup url -->
+<img src="http://www.valid.url/img3.png" alt="tets61"  title="valid image url but needs cleanup" >
+<img src="http://valid.url/img3.png" alt="tets61"  title="the same url as above-> merge it: assert count" >
+
+
+</body>
+

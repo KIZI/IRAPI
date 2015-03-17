@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Media extracotr plugin for project linkedtv.eu
+-->
+<plugin
+   id="media-extractor"
+   name="Media Extractor Plug-in"
+   version="2.0.0"
+   provider-name="linkedtv.org">
+
+   <runtime>
+      <library name="media-extractor.jar">
+         <export name="*"/>
+      </library>
+	<library name="jsoup-1.7.2.jar"/>  
+   </runtime>
+
+   <requires>
+      <import plugin="nutch-extensionpoints"/>  
+   </requires>
+
+   <extension id="org.apache.nutch.parse.media.MediaExtractorParser"
+              name="MediaExtractor ParseFilter"
+              point="org.apache.nutch.parse.ParseFilter">
+
+      <implementation id="MediaExtractorParser"
+                      class="org.apache.nutch.parse.media.MediaExtractorParser">
+      </implementation>
+   </extension>
+
+   <extension id="org.apache.nutch.indexer.filter.media"
+              name="MediaExtractor IndexingFilter"
+              point="org.apache.nutch.indexer.IndexingFilter">
+      <implementation id="MediaIndexingFilter"
+                      class="org.apache.nutch.indexer.media.MediaIndexingFilter"/>
+   </extension>
+
+  <extension id="org.apache.nutch.indexwriter.media"
+    name="SOLR Index Writer for media plugin"
+    point="org.apache.nutch.indexer.IndexWriter">
+    <implementation id="MediaSOLRIndexWriter"
+      class="org.apache.nutch.indexwriter.media.MediaSOLRIndexWriter" />
+  </extension>
+ 
+</plugin>
