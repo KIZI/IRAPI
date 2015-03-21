@@ -6,7 +6,7 @@ It purpose is to extract media informations (url,title,description,width,...) fr
 
 Use of this plugin includes modification of Nutch source code.
 
-1) copy all java files in folder "media" under package $NUTCH_HOME/src/java/org/apache/nutch/media
+1) copy all java files in folder "org/apache/nutch/media/model/" under package $NUTCH_HOME/src/java/org/apache/nutch/media
 
      cp media $NUTCH_HOME/src/java/org/apache/nutch/media
 
