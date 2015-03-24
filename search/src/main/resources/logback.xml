@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+ 
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </layout>
+  </appender>
+  
+   <appender name="TOREMOVE" class="ch.qos.logback.core.FileAppender">
+  <!--    <file>/home/babu/linkedtv/tmp/toRemove.log</file>-->
+        <file>/path/to/your/log/toRemove.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+  
+  <logger name="eu.linkedtv.irapi.search.util.ResponseChecker" level="INFO">
+    <appender-ref ref="TOREMOVE" />
+  </logger>
+   
+  <root level="debug">
+    <appender-ref ref="STDOUT" />
+  </root>
+  
+</configuration>
