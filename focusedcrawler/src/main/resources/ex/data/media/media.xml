@@ -1,0 +1,176 @@
+<?xml version="1.0" ?>
+<!DOCTYPE model SYSTEM "../eol.dtd">
+<!--
+     $Id: contact_en6.xml 1880 2009-03-28 13:23:28Z labsky $
+     Extraction ontology for initial medieq criteria
+-->
+<model name="media">
+
+<import model="../datatypes.xml" />
+
+<!-- functions used by some script axioms -->
+<!-- <script src="media.js" /> -->
+
+<!-- all references to resources below will be resolved relative to this base url -->
+<base url="../../../data"/>
+
+<class id="mrec" prune="0.05">
+
+
+  <pattern id="media_next_to_title" type="pattern" cover="0.9" log="0" enabled="1">
+    ^ ( ($title $media) | ($media $title) ) $
+  </pattern>
+  
+  <!--
+  p="0.6" 
+  <pattern cover="0.05" p="-1.0" type="format"> has_one_parent </pattern>
+  <pattern cover="0.03" p="-1.0" type="format"> fits_in_parent </pattern>
+  <pattern cover="1"    p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+  <pattern cover="0.03" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+  -->
+  <pattern cover="0.05" type="format"> no_crossed_block_tags </pattern>
+  
+  <attribute id="title" type="name" card="1" prior="0.01" eng="1" log="1" prune="0.1">
+    <pattern id="words1"> <tok/> </pattern>
+    <pattern id="words2"> <tok/>{2,5} </pattern>
+    <pattern id="words3"> <tok/>{6,20} </pattern>
+
+    <value>
+      <or>
+        <pattern p="0.5"> <tag name="caption"/> <pattern ref="words1"/> <tag name="/caption"/> </pattern>
+        <pattern p="0.6"> <tag name="caption"/> <pattern ref="words2"/> <tag name="/caption"/> </pattern>
+        <pattern p="0.7"> <tag name="caption"/> <pattern ref="words3"/> <tag name="/caption"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.5"> <tag name="h1"/>      <pattern ref="words1"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.6"> <tag name="h1"/>      <pattern ref="words2"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.7"> <tag name="h1"/>      <pattern ref="words3"/> <tag name="/h1"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.5"> <tag name="h2"/>      <pattern ref="words1"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.6"> <tag name="h2"/>      <pattern ref="words2"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.7"> <tag name="h2"/>      <pattern ref="words3"/> <tag name="/h2"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.5"> <tag name="h3"/>      <pattern ref="words1"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.6"> <tag name="h3"/>      <pattern ref="words2"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.7"> <tag name="h3"/>      <pattern ref="words3"/> <tag name="/h3"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.5"> <tag name="h4"/>      <pattern ref="words1"/> <tag name="/h4"/> </pattern>
+        <pattern p="0.6"> <tag name="h4"/>      <pattern ref="words2"/> <tag name="/h4"/> </pattern>
+        <pattern p="0.7"> <tag name="h4"/>      <pattern ref="words3"/> <tag name="/h4"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.5"> <tag name="h5"/>      <pattern ref="words1"/> <tag name="/h5"/> </pattern>
+        <pattern p="0.6"> <tag name="h5"/>      <pattern ref="words2"/> <tag name="/h5"/> </pattern>
+        <pattern p="0.7"> <tag name="h5"/>      <pattern ref="words3"/> <tag name="/h5"/> </pattern>
+      </or>
+
+      <length><distribution min="1" max="30" /></length>
+
+      <pattern cover="1" type="format"> has_one_parent </pattern>
+      <pattern cover="1" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" type="format"> no_crossed_block_tags </pattern>
+    </value>
+  </attribute>
+
+  <attribute id="media" type="xml" card="1" prior="0.01" eng="1" log="1" enabled="1">
+     
+    <!-- can't include xpath patterns in regular tokenpatterns yet: 
+    <pattern id="xp" type="xpath"> //*[self::img or self::embed or self::video or self::object]/@src </pattern>	
+    <value> <pattern cover="0.05"  p="0.5"> <pattern ref="xp"/> </pattern> </value>
+	-->
+	
+	<value>
+	  <!-- select all petential images and videos in document -->
+      <pattern id="xp1" type="xpath" p="0.5" log="1">
+        //*[local-name()='img' or local-name()='embed' or local-name()='video' or local-name()='object']
+      </pattern>
+      
+      <!-- lowercase (or true case) tag names result from XHTML pages, but HTML pages always yield uppercase elements in the Neko implementation -->
+      <pattern id="xp1" type="xpath" p="0.5" log="1">
+        //*[local-name()='IMG' or local-name()='EMBED' or local-name()='VIDEO' or local-name()='OBJECT']
+      </pattern>
+	</value>
+	
+  </attribute>
+
+  <attribute id="email" type="name" card="0-1" eng="0" log="1" prune="0.2">
+    <value>
+      <pattern cover="0.98" ignore="case" p="0.9" log="0">
+        <tok type="EMAIL" />
+        <tok type="ALPHA|ALPHANUM"/> ( . <tok type="ALPHA|ALPHANUM"/> )? at ( <tok type="ALPHA|ALPHANUM"/> . ){1,3} (cz|org|com|eu|de|sk|pl|es|gr|ch|fi|gb|uk|hu|au|ru|it|ca)
+      </pattern>
+      <length><distribution min="1" max="3" /></length>
+    </value>
+    <context>
+      <pattern cover="0.1" ignore="case,lemma" p="0.3"> ( email | e-mail | e .? mail ) :? $ </pattern>
+    </context>
+  </attribute>
+
+  <attribute id="phone" type="name" card="0-1" eng="0" prune="0.2">
+    <pattern id="prefix_bracketed"> \( \+? <tok type="INT">^\d{1,4}$</tok> \) </pattern>
+    <pattern id="prefix_unbracketed">  \+? <tok type="INT">^\d{1,4}$</tok> </pattern>
+    <pattern id="num_wo_prefix"> 
+      (-|/)? <tok type="INT">^\d{5,9}$</tok>
+      ((-|/)? <tok type="INT">^\d{3,4}$</tok>){2,3}
+      ((-|/)? <tok type="INT">^\d{2,3}$</tok>){2,4}
+      (-|/)? <tok type="INT">^\d{1,2}$</tok> -? <tok type="INT">^\d{3,5}$</tok>{2,3}
+      <tok type="INT">^\d$</tok> (-? <tok type="INT">^\d{3,4}$</tok>){2,3}
+    </pattern>
+    <pattern id="cc"> \+? <tok type="INT">^\d{1,3}$</tok> (-|/)? </pattern>
+    <value>
+      <or>
+        <pattern id="v1" cover="0.01" p="0.95" log="0">
+          <pattern ref="cc"/>? <pattern ref="prefix_bracketed"/> <pattern ref="num_wo_prefix"/>
+        </pattern>
+        <pattern id="v2" cover="0.01" p="0.65">
+          <pattern ref="prefix_unbracketed"/> <pattern ref="num_wo_prefix"/>
+        </pattern>
+        <pattern id="v3" cover="0.01" p="0.05"> 
+           <pattern ref="cc"/>? <tok type="INT"/> ( -? <tok type="INT"/> ){1,2}
+        </pattern>
+        <pattern id="v4" cover="0.01" p="0.65">
+          <tok type="INT">^\d{3}$</tok> ( - <tok type="INT">^\d{3,8}$</tok> ){1}
+          <tok type="INT">^\d{2,3}$</tok> ( - <tok type="INT">^\d{3,4}$</tok> ){2,3} 
+        </pattern>
+        <pattern id="v5" cover="-1" p="0.05"> <tok type="INT"/>{2,4} </pattern>
+      </or>
+ 
+      <length><distribution min="1" max="10" /></length>
+      <pattern cover="1.0" p="-1" type="format"> has_one_parent </pattern>
+      <pattern cover="0.02" p="-1" type="format"> fits_in_parent </pattern>
+      <pattern cover="1.0" p="-1" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1.0" p="-1" type="format"> no_crossed_block_tags </pattern>
+            
+      <!-- restrictions -->
+      <pattern cover="0.01" p="0.001"> <pattern ref="_datatypes.year"/> - <pattern ref="_datatypes.year"/> </pattern>
+           
+      <pattern cover="1.0" p="-1.0" type="pattern"> 
+        <pattern ref="v1"/> | <pattern ref="v2"/> | <pattern ref="v3"/> | <pattern ref="v4"/> | <pattern ref="v5"/>
+      </pattern>
+    </value>
+    <context>
+      <pattern cover="0.03" ignore="case" p="0.4"> 
+         ( tel .? | phone | telephone | cell | cellphone | cellular | line | ext .? | fax 
+           tollfree | toll -? free | number is | numbers are ) :? $
+      </pattern>
+      <pattern cover="0.03" ignore="case" p="0.4">
+        $ \(? (fax | cell | cellphone | tollfree | toll -? free) \)?
+      </pattern>
+      <pattern cover="-1" p="0.001"> <tok type="INT"/> <lab name="INLINE|BLOCK|BR$" neg="1"/> $ </pattern>
+      <pattern cover="-1" p="0.001"> $ <lab name="INLINE|BLOCK|BR$" neg="1"/> <tok type="INT"/> </pattern>
+    </context>
+  </attribute>
+  
+</class>
+
+<!-- 
+<finally>
+  <script> transformContacts(); </script>
+</finally>
+ -->
+ 
+</model>

@@ -1,0 +1,979 @@
+<?xml version="1.0" ?>
+<!DOCTYPE model SYSTEM "../eol.dtd">
+<!--
+     $Id: contact_de1.xml 1770 2008-12-23 23:36:19Z labsky $
+     Extraction ontology for initial medieq criteria
+-->
+<model name="medieq_contact_de">
+
+<import model="../datatypes.xml" />
+
+<!-- functions used by some script axioms of the Contact class -->
+<script src="contact.js" />
+<!-- post-processing functions -->
+<script src="contact_post.js" />
+
+<!-- all references to resources below will be resolved relative to this base url -->
+<base url="../../../data"/>
+
+<class id="Contact" prune="0.05">
+
+<!-- ********************************************************************** -->
+<!-- ******************************* PERSON ******************************* -->
+<!-- ********************************************************************** -->
+
+<!-- 
+  <classifier id="cls1" method="weka" classtype="attribute"
+   name="weka.classifiers.functions.SMO"
+   model="../ex/data/med/train/de/smo_tnsod_bgr.bin" 
+   elements="title name street organization department">
+    <feature type="model" />
+    <feature type="ngram" ignore="case" length="1-2" minocc="2" maxcnt="150" mi="0.1, 10"    
+             position="before, after, equals, prefix, suffix, content"
+             source="document" book="../ex/data/med/train/de/tnsod_bgr.fgram" />
+  </classifier>
+-->
+
+  <classifier id="cls1" classtype="attribute"
+   name="uep.ex.train.crf.CRFConnector"
+   datasource="uep.ex.train.WordSource"
+   elements="title name street city country organization department job"
+   model="c:/keg/medieq/ex/data/med/train/de/crf_tnsccodj.bin">
+    <feature type="model" />
+    <param name="template"> c:/keg/medieq/ex/res/template.crf </param>
+    <param name="crf_dir"> c:/projekty/crf_pp </param>
+    <param name="tmp_dir"> tmp_crf </param>
+    <param name="encoding"> utf-8 </param>
+  </classifier>
+
+  <pattern id="title_name_together_and_first" type="pattern" cond="any" cover="1" p="-1" log="0">
+    ^ ( $organization | $name | ($title .? $name) | ($name ,? $title) )
+  </pattern>
+  <!-- ^ (( $title{1,2} .? $name $title{0,5}) | ( $title{0,2} .? $name $title{1,5} ))  
+       $title* $name ~ $title* <tok/>{0,10} ( ($organization | $street | $city | $region | $country | $zip | $email | $phone)  <tok/>{0,10} )* -->
+  <!-- <pattern id="address_pattern" type="pattern" cover="0.05" p="-1" log="0">
+    $organization $street $city $region? $zip $country?
+  </pattern> -->
+  <!-- 
+  <pattern id="tester1" type="pattern" cover="-1" p="0.7" cond="all" log="0">
+    ^ $name (<tok/>{0,5} $phone){1,3} $
+  </pattern> -->
+
+  <pattern id="similar_name_email" type="script" cover="0.8" p="-1" cond="all">
+    nameMatchesEmail($name, $email) > 0
+  </pattern>
+
+<!-- 
+  <pattern id="fits_into_td" type="pattern" cover="0.1" p="-1" log="1">
+    ^ <lab name="TD"/> $
+  </pattern>
+-->
+  <pattern cover="0.05" p="-1.0" type="format"> has_one_parent </pattern>
+  <pattern cover="0.05" p="-1.0" type="format"> fits_in_parent </pattern>
+  <pattern cover="0.03" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+  <pattern cover="0.6" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+  
+  <attribute id="title" type="name" card="0-4" eng="0.60">    
+    <!-- belongs to global section -->
+    <pattern id="ml" log="0"> <tok/>{1,7} (<lab name="^BR|OBJECT|HEADING|CONTAINER|BLOCKQUOTE|BODY|DIV|DD|DT|LI|P|PRE|TH"/>|<lab name="BR|OBJECT|HEADING|CONTAINER|BLOCKQUOTE|BODY|DIV|DD|DT|LI|P|PRE|TH$"/>) <tok/>{1,7} </pattern>
+    <pattern id="nobr" log="0">  ((<lab neg="1" name="^BR|OBJECT|HEADING|CONTAINER|BLOCKQUOTE|BODY|DIV|DD|DT|LI|P|PRE|TH"/>|<lab neg="1" name="BR|OBJECT|HEADING|CONTAINER|BLOCKQUOTE|BODY|DIV|DD|DT|LI|P|PRE|TH$"/>)) </pattern>
+    <!-- <pattern id="stop_en" src="common/en/freq2000.txt" type="pattern" ignore="case" case="CA|UC" encoding="utf-8" /> -->
+    <pattern id="stop_en" src="common/en/bnc7k.txt" type="pattern" ignore="case" case="CA|UC" encoding="utf-8" />
+    <pattern id="stop_de" src="common/de/1000.txt" type="pattern" ignore="case" case="CA|UC" encoding="utf-8" />
+    <pattern id="stop"> <pattern ref="stop_en"/> | <pattern ref="stop_de"/> </pattern>
+    <pattern id="us_states_abbr" type="pattern"> DC|D.C.|D .? C .?|AK|AL|AR|AZ|CA|CO|CT|FL|GA|HI|IA|ID|IL|KS|KY|LA|MA|MD|ME|MI|MN|MO|MS|MT|NC|ND|NE|NH|NJ|NM|NV|NY|PA|PR|RI|SC|SD|TN|TX|UT|VA|VT|WA|WI|WV|WY </pattern>
+
+    <!-- single title patterns-->
+    <pattern id="titles_pre" ignore="case">
+     Miss | Lady | Sir 
+     ( Mr | Mrs | Ms | Dr | Ing | Mgr | Bc | Dra | Sra | Fga | Lic | Cro | Cra | DrC ) .?
+    </pattern>
+    <pattern id="some_prof" ignore="case"> 
+      (associate|assoc .?|assistant|assist .?)? <tok type="alpha"/>? (professor|prof .?) 
+    </pattern>
+    <pattern id="some_prof_of" ignore="case">
+      <pattern ref="some_prof"/> (of <tok type="alpha"/> (and <tok type="alpha"/>)? )?
+    </pattern>
+    <pattern id="titles_suf" log="0">
+     ( , <pattern ref="some_prof_of"/> )
+     (( M . S | MA | MPh | MPH | MSPH | PhD | Ph . D | DrSc 
+       MBA | BA | M .? B .? A | MB | BM | MS | BS | MBBS | M . B . B . S | CAE | C . A . E
+       MD | M . D | FRCP | F . R . C . P | MRCP | M . R . C . P | MRCPsych | FRCPsych | FACP | FACOG | F . R . C . Psych | F . R . C . P
+       MRCPCH | MBChB | DRCOG | BChir | Bchir | B .? Chir | ChB | FRCS | FRCGP | FACS | F . A . C . S | F . A . C . P 
+       LRCP | LNCP | MRCS | MRCOG | MRCGP | MFDS | MBBChir ) .? )
+     ( M.Sc. | M.S. | M.Ph. | Ph.D. | Dr.Sc. | M.B.A. | M.B. | B.S. | M.B.B.S.
+       M.D. | F.R.C.P. | M.R.C.P. | F.R.C.Psych. | M.R.C.P.Ch. | M.B.Ch.B.
+       Dr.C.O.G. | B.Chir. | Ch.B. | F.A.C.S. | F.A.C.P. | M.F.D.S. | C.A.E. )
+       Esq .?
+    </pattern>
+    <pattern id="titles_de" ignore="case">
+     ((Cand|Dipl|Dr|Bc|Univ|Mag|Mgr|DDr) .? -?){0,2} (rer .?)? (Psych|Phil|Ph|Philos|Soc|Med|Medic|Sc|Ing|Prof|DDr) .?
+     Prim .?
+     <tok ignore="case">dr\.med</tok>
+     dr. med | dr. med.
+    </pattern>
+    <pattern id="titles_bi_1" ignore="case">
+     docent | magister | <pattern ref="some_prof"/> 
+    </pattern>
+    <pattern id="titles_bi">
+     <pattern ref="titles_bi_1"/>
+     <pattern ref="titles_de"/> 
+     ( ( MSc | MSC | MUDr | MVDr | PhDr | BSc | Bsc | CSc | Doc | Prof | PharmDr | RNDr | RSDr | DiS 
+         PaedDr | PaeDr | PhMr | MgA | JUDr | BcA | ThDr ) .? )
+    </pattern>
+    <pattern id="title_any">
+     <pattern ref="titles_bi"/> | <pattern ref="titles_pre"/> | <pattern ref="titles_suf"/>
+    </pattern>
+    
+    <!-- title arrays;-) -->
+    <pattern id="titles_pre_arr" log="0">
+     ((<pattern ref="titles_bi"/>|<pattern ref="titles_pre"/>) .? ) ( ,? (<pattern ref="titles_bi"/>|<pattern ref="titles_pre"/>) .? ){0,20}
+    </pattern>
+    <pattern id="titles_suf_arr">
+     (,? ((<pattern ref="titles_bi"/>|<pattern ref="titles_suf"/>) .?))+
+    </pattern>
+    <pattern id="titles_arr">
+     ((<pattern ref="titles_bi"/>|<pattern ref="titles_pre"/>|<pattern ref="titles_suf"/>) (,|.)?)+
+    </pattern>
+    
+    <value>
+      <pattern cover="0.95" p="0.995" ignore="case">
+       ( <pattern ref="titles_pre" /> | <pattern ref="titles_suf"/> | <pattern ref="titles_bi"/> ){1,4}
+      </pattern>
+      <length><distribution min="1" max="8" /></length>
+      <pattern type="script" cover="0.03"> matchCount($,/[ \.]/g)>1 </pattern>
+      <pattern type="script" cover="0.03"> matchCount($,/[ \.]/g)>2 </pattern>
+      <pattern type="script" cover="0.03"> matchCount($,/[ \.]/g)>3 </pattern>
+      <pattern type="script" cover="0.03"> matchCount($,/[ \.]/g)>4 </pattern>
+      <pattern type="script" cover="0.03"> matchCount($,/[ \.]/g)>5 </pattern>
+      <pattern type="script" cover="0.03"> matchCount($,/[ \.]/g)>6 </pattern>
+      
+      <pattern cover="1.0" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.05" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+      
+      <pattern cover="-1" p="0.85" feature="no"> <lab name="cls1.title"/> </pattern>
+      <!--
+      <pattern cover="-1" p="0.7" feature="no"> <lab name="elg.title"/> </pattern>
+      -->
+    </value>
+
+  </attribute>
+
+  <attribute id="name" type="name" card="0-1" eng="0.51" log="0" prior="0.01">
+    <pattern id="preamble" ignore="case">
+     ((first | last )? name | surname | first name? (and|:|,|\+)? (last name|surname)) :?
+    </pattern>
+    <pattern id="postamble" ignore="case" log="0">
+      from ($organization|$department) | , (head|chief|member) of | , (researcher|professor) at | will speak 
+      \( <tok/>{0,3} (institute|school|university|department|foundation|company|consortium|organization|research) <tok/>{0,3} \) 
+    </pattern>
+
+    <pattern id="cap"> <tok type="alpha|apos" case="CA|UC"/> </pattern>
+    <pattern id="initial">
+      <tok type="alpha" case="UC">^[A-Z]$</tok> .?
+      <tok type="acronym" case="UC">^[A-Z]\.[A-Z]\.?$</tok> .?
+    </pattern>
+    <pattern id="nameaux" ignore="case"> (le|di|von|van|de la?|del) </pattern>
+    <pattern id="ini2" src="names/en/ini2_bnc7k.txt" />
+    <pattern id="firstname" log="0">
+      <pattern src="names/es/first_male.txt" type="pattern" ignore="case" case="CA|UC" encoding="utf-8" />
+      <pattern src="names/es/first_female.txt" type="pattern" ignore="case" case="CA|UC" encoding="utf-8" />
+      <pattern src="names/en/first_male.txt" type="pattern" ignore="case" case="CA|UC" encoding="iso-8859-1" />
+      <pattern src="names/en/first_female.txt" type="pattern" ignore="case" case="CA|UC" encoding="iso-8859-1" />
+      <pattern src="names/de/first.txt" type="pattern" ignore="case" case="CA|UC" encoding="windows-1252" />
+    </pattern>
+    <pattern id="firstname1">
+      <pattern ref="firstname"/> ( -? <pattern ref="firstname"/> )?
+    </pattern>
+
+    <pattern id="surname1">
+      <pattern src="names/es/last.txt" type="pattern" ignore="case" case="CA|UC" encoding="utf-8" />
+      <pattern src="names/en/last18k.txt" type="pattern" ignore="case" case="CA|UC" encoding="iso-8859-1" />
+      <pattern src="names/de/last.txt" type="pattern" ignore="case" case="CA|UC" encoding="windows-1252" />
+    </pattern>
+    <pattern id="surname_cn">
+      <pattern src="names/en/last_cn.txt" type="pattern" ignore="case" case="CA|UC" encoding="iso-8859-1" />
+    </pattern>
+    
+    <pattern id="surname2"> <pattern ref="surname_cn"/> | <pattern ref="surname1"/> </pattern>
+    <pattern id="surname">
+      <pattern ref="surname2"/>
+      <pattern ref="surname2"/> - (<pattern ref="surname2"/> | <pattern ref="cap"/>)
+      (<pattern ref="surname2"/> | <pattern ref="cap"/>) - <pattern ref="surname2"/>
+      <tok>^[A-Z][a-z]*(man|mann|stein|sky|cky|ski|cky|ska|ov|ev|escu|ej|nen|son|elli|ato|dez|déz|tes|tés|rra|rras|ez|�z)$</tok>
+      (van|von) <tok>^[A-Z][a-z]{3,15}$</tok>
+      <tok>^Mc[A-Z][a-z]{3,15}$</tok>
+    </pattern>
+    
+    <pattern id="a_name"> <pattern ref="firstname1"/> | <pattern ref="surname"/> </pattern>
+    
+    <pattern id="middle"> <pattern ref="initial"/> | <pattern ref="nameaux"/> </pattern>
+    <pattern id="midname"> <pattern ref="middle"/> | <pattern ref="a_name"/> </pattern>
+    <pattern id="midname_unk"> <pattern ref="midname"/> | <tok type="alpha" case="CA">\w+</tok> </pattern>
+    <pattern id="jr" ignore="case"> junior | jr . | senior </pattern>
+
+    <!-- patterns directly used in value section -->
+    <pattern id="bothknown">
+      <pattern ref="initial"/>? <pattern ref="firstname1"/> <pattern ref="midname_unk"/>{0,4} <pattern ref="surname" />
+      <pattern ref="surname" /> ,? <pattern ref="initial"/>{1,3} <pattern ref="firstname1"/>
+    </pattern>
+    <pattern id="firstknown" log="0">
+      <pattern ref="initial"/>? <pattern ref="firstname1"/> <pattern ref="midname_unk"/>{0,4} (<tok case="CA|UC" /> | <pattern ref="surname" />){1,2}
+      <tok case="CA">^[A-Z][a-z]{3,15}$</tok> , <pattern ref="initial"/>{0,3} <pattern ref="firstname1"/>
+    </pattern>
+    <pattern id="lastknown">
+      <tok case="CA|UC"/> (-<tok case="CA|UC"/>)? <pattern ref="midname_unk"/>{0,4} <pattern ref="surname" />{1,2}
+    </pattern>
+    <pattern id="lastknown_initials">
+      <pattern ref="initial"/>{1,3} <pattern ref="surname" />
+      <pattern ref="surname" /> ,? <pattern ref="initial"/>{1,3}
+      <pattern ref="surname" /> ,? <pattern ref="ini2"/>
+    </pattern>
+    <pattern id="unknown_initials">
+      <pattern ref="initial"/>{1,3} <tok type="alpha|apos" case="CA|UC" ignore="case">^[a-z]{2,50}$</tok>
+      <tok type="alpha|apos" case="CA|UC" ignore="case">^[a-z]{2,50}$</tok> ,? (<pattern ref="ini2"/> | <pattern ref="initial"/>{1,3})
+    </pattern>
+    <!-- name composed of unknown proper names requires presence of contextual evidence -->
+    <pattern id="unknown" log="0">
+      (<tok type="alpha|apos" case="CA|UC"/> -? | <pattern ref="midname_unk"/>){0,4} <tok type="alpha|apos" case="CA|UC" ignore="case">^[a-z]{2,50}$</tok>
+    </pattern>
+    
+    <context>
+      <pattern cover="0.01" p="0.2" log="0" linear="1"> <pattern ref="Contact.title.titles_pre_arr"/> $ </pattern>
+      <pattern cover="0.01" p="0.2" log="0" linear="1"> $ (,|-)? <pattern ref="Contact.title.titles_suf_arr"/> </pattern>
+      <pattern cover="0.02" p="0.6" ignore="case" linear="1"> $ <pattern ref="postamble"/> </pattern>
+      <pattern cover="0.02" p="0.5" ignore="case"> <pattern ref="preamble"/> $ </pattern>
+    </context>
+    
+    <value>
+      <!-- this axiom should be defined for the class contact but is here temporarily due to a bug -->
+      <axiom id="must_have_person_or_org" cond="none">
+        ($name!=undefined) || ($organization!=undefined)
+      </axiom>
+      
+      <and cover="0.01" p="0.7">
+        <pattern id="v10" log="0">
+          <pattern ref="unknown_initials"/>
+        </pattern>
+        <pattern type="script" log="0">
+          ! (/^(A|I|U)\s*[^.]/.test($) || /^P\s*\.?\s*(O|S|R)[\s\.\-]/.test($))
+        </pattern>
+      </and>
+      
+      <or>
+        <!-- OR group only uses the evidence in it which is observed and has the highest precision. 
+             When no evidence is observed, coverage of each evidence is used separately to suppress the predicted attribute. -->
+        <pattern id="v1" cover="0.01" p="0.8">
+          <pattern ref="bothknown"/> (,? <pattern ref="jr"/>)?
+        </pattern>
+      
+        <pattern id="v2" cover="0.01" p="0.75">
+          <pattern ref="firstknown"/> (,? <pattern ref="jr"/>)?
+        </pattern>
+      
+        <pattern id="v3" cover="0.01" p="0.55">
+          <pattern ref="lastknown"/>
+        </pattern>
+        
+        <pattern id="v9" cover="0.01" p="0.75">
+          <pattern ref="lastknown_initials"/>
+        </pattern>
+                
+        <pattern id="v4" cover="0.01" p="0.75">
+          <pattern ref="lastknown"/> ,? <pattern ref="jr"/>
+        </pattern>
+      
+        <pattern id="v5" cover="0.01" p="0.25">
+          <pattern ref="surname"/>
+        </pattern>
+        <pattern id="v6" cover="0.01" p="0.77">
+          <pattern ref="surname"/> ,? <pattern ref="jr"/>
+        </pattern>
+        <pattern id="v7" cover="0.01" p="0.7">
+          <pattern ref="surname_cn"/>
+        </pattern>
+        
+        <pattern id="v8" cover="0.01" p="0.08">
+          <pattern ref="unknown"/>
+        </pattern>
+	  </or>
+      
+      <pattern id="valpats">
+        <pattern ref="v1"/>|<pattern ref="v2"/>|<pattern ref="v3"/>|<pattern ref="v4"/>
+        <pattern ref="v5"/>|<pattern ref="v6"/>|<pattern ref="v7"/>|<pattern ref="v8"/>
+        <pattern ref="v9"/>|<pattern ref="v10"/>
+      </pattern>
+
+      <pattern type="script" cover="1" p="-1"> checkPersonName($) </pattern>
+
+      <length> <distribution min="1" max="8" /> </length>
+      <pattern cover="0.4" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.05" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="0.7" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" p="-1.0" type="format"> no_crossed_block_tags </pattern>      
+
+      <!-- in German training data, co-referring person names are not grouped in 1 instance 
+           so do not allow grouping to get better villain score -->
+      <refers> false </refers>
+      <!-- <refers> nameRefersTo($, $other) </refers> -->
+      
+      <!-- refers to n-ary classifier of id="cls1" defined at class level -->
+      <pattern id="cls1_name" cover="-1" p="0.85" feature="no"> <lab name="cls1.name" /> </pattern>
+      <pattern id="elg_name" cover="-1" p="0.65" feature="no"> <lab name="elg.name" /> </pattern>
+      
+      <!-- restrictions -->
+      <pattern cover="0" p="0" log="0"> <pattern ref="Contact.title.ml"/> </pattern>
+      <pattern cover="0.01" p="0" log="0"> <pattern ref="Contact.title.titles_arr"/> </pattern>
+      <pattern cover="0.01" p="0.0005" log="0"> <pattern ref="Contact.title.stop"/> <tok/>{0,7} </pattern>
+      
+      <!-- a filter that all recognized names must match; this is necessary as attribute candidates 
+           can be created just based on context; e.g. 1-6 token segments following after Dr. -->
+      <pattern cover="0.9999" p="-1.0">
+        <pattern ref="valpats"/>|<pattern ref="unknown"/>|<pattern ref="cls1_name"/>|<pattern ref="elg_name"/> 
+      </pattern>
+    </value>
+  </attribute>
+
+  <attribute id="name_author" extends="name" card="0-1">
+    <pattern id="left_en" ignore="case">
+     (author|(written|authored|submitted) by) :?
+    </pattern>
+    <context>
+      <pattern cover="0.05" p="0.55" ignore="case"> 
+        <pattern ref="left_en"/> $
+      </pattern>
+	</context>
+  </attribute>
+
+  <attribute id="name_sponsor" extends="name" card="0-1">
+    <pattern id="left_en" ignore="case"> ((financed|supported|sponsored) by
+     (thank|thanks) to our (sponsors|sponsor|supporters)) :?
+    </pattern>
+    <context>
+      <pattern cover="0.05" p="0.55" ignore="case"> 
+        <pattern ref="left_en"/> $
+      </pattern>
+    </context>
+  </attribute>
+
+  <attribute id="name_responsible" extends="name" card="0-1">
+    <pattern id="left_en" ignore="case">
+     responsible person? (for (<tok/>{1,5} (content|information)))? :?
+    </pattern>
+    <context>
+      <pattern cover="0.05" p="0.55" ignore="case"> 
+        <pattern ref="left_en"/> $
+      </pattern>
+	</context>
+  </attribute>
+
+  <attribute id="name_webmaster" extends="name" card="0-1">
+    <pattern id="wbm"> webmaster|web master|web administrator|developer </pattern>
+    <pattern id="left_en" ignore="case">
+     ( <pattern ref="wbm"/> is?
+      (web|pages|web pages|webpages|website|web site|site|design|web design|webdesign) ((was|is) (created
+       developed|maintained|administered))? by) :?
+    </pattern>
+    <pattern id="right_en" ignore="case">
+      (, | is | works as) the? <pattern ref="wbm"/>
+    </pattern>
+    <context>
+      <pattern cover="0.05" p="0.45" ignore="case">
+         <pattern ref="left_en"/> $
+      </pattern>
+      <pattern cover="0.05" p="0.45" ignore="case">
+         $ <pattern ref="right_en"/>
+      </pattern>
+	</context>
+  </attribute>
+  
+  <attribute id="job" type="name" card="0-1" eng="0.6">
+    <value>
+      <pattern p="0.8" cover="0.1" ignore="case" log="0">
+       (Stellvertretende|Stellvertretender)? (Vorsitzende|Vorsitzender|Vorsitzenden)? ((redakteur|redakteurin) 
+       (leiter|leiterin) der ($department|$organization|geschäftsstelle) 
+       Vorstand | Kommissarisch | Minister | Ministerin | Bundesminister | Bundesministerin
+       (<tok ignore="case">vorsitzende[rn]?$</tok>|Referent|Referentin) ((des|der) <tok type="ALPHA" case="UC|CA"/>{1,2})?
+       Hauptgeschäftsführer | Geschäftsführer | Geschäftsbereichsleiter | Geschäftsbereichsleiterin
+       Geschäftsleiter | Geschäftsleiterin | Pressesprecher | Pressesprecherin
+       Sachgebietsleiter | Sachgebietsleiterin | Schatzmeister
+       (Mitarbeiter|Mitarbeiterin) <tok type="ALPHA" case="UC|CA"/>{1,2}
+       Präsident | Präsidentin
+       Sekretär | Sekretärin
+       Sekretariat Vorstand | Vereinsvorsitz | Kassier )
+      </pattern>
+      <pattern p="0.7" cover="0.1" ignore="case" log="0">
+       <tok ignore="case">sekretariat$</tok> 
+       <tok ignore="case">beratung$</tok>
+       <tok ignore="case">buchhaltung$</tok>
+       (Stellvertretende|Stellvertretender)? <tok ignore="case">(führer|führerin|leiter|leiterin)$</tok>
+       (assistant|assistent) (der|den) <tok/>
+       justitiar
+      </pattern>
+      <length> <distribution min="1" max="6" /> </length>
+      <pattern cover="0.1" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.1" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+
+      <!-- CRF classifier -->
+      <pattern id="cls1_job" cover="-1" p="0.85" feature="no"> <lab name="cls1.job" /> </pattern>
+      <pattern cover="-1" p="0.6" feature="no"> <lab name="elg.job"/> </pattern>      
+    </value>
+  </attribute>
+   
+<!-- *********************************************************************** -->
+<!-- ******************************* ADDRESS ******************************* -->
+<!-- *********************************************************************** -->
+
+  <attribute id="street" type="name" card="0-1" eng="0.60">
+    <pattern id="street_suffix_cap" case="CA|UC"> Way | Lake | Square | Place | Ridge | Beach | Valley | Ridge </pattern>
+    <pattern id="street_suffix" ignore="case">
+      street | st .? | road | rd .? | parkway | pkwy .? | drive | drv .? | sq .? 
+      boulevard | boul .? | blv .? | blvd .? | pl .? | pike | turnpike | turn pike 
+      avenue | ave .? | av .? | lane | ln . | lk .
+      <pattern ref="street_suffix_cap"/>
+    </pattern>
+    <pattern id="det"> der | den | dem | die </pattern>
+    <pattern id="de_street_prefix" ignore="case" case="CA|UC">
+      ((Auf|An|Am|Zu|Zur) -? <pattern ref="det"/>?)
+    </pattern>
+    <!-- berg|burg|hausen|haus -->
+    <pattern id="de_singlewordstreet" log="0">
+      <tok ignore="case" case="CA|UC" type="alpha">.(strasse|straße|str|allee|gasse|platz|weg|[^u]tor)$</tok>
+      <tok ignore="case" case="CA|UC" type="alpha">.str$</tok> .
+    </pattern>
+    <pattern id="de_street_suffix" ignore="case" case="CA|UC" log="0">
+      strasse | straße | str .? | allee | gasse | platz | weg
+      <pattern ref="de_singlewordstreet" />
+    </pattern>
+    <pattern id="strno">
+      <tok type="INT">^\d{1,3}$</tok> ((-|/) <tok type="INT">^\d{1,3}$</tok>)?
+      <tok type="NUMALPHA" ignore="case">^\d+[a-z]$</tok>
+    </pattern>
+    <pattern id="us_strname">
+      ( (<tok type="INT"/> ( (-|.)? (th|rd|st|nd) )? ) | <tok type="NUMALPHA"/>) <tok type="ALPHA|NUMALPHA" case="CA|UC"/>{0,3}
+    </pattern>
+    <pattern id="geo_dirs" ignore="case">
+      Northern | Southern | Western | Eastern | North | South | West | East | ( (NW | NE | SW | SE | E | W | N | S) .? )
+      Ost | West | Nord | Süd 
+    </pattern>
+    <pattern id="full_street_pattern" log="0">
+      <pattern ref="geo_dirs"/>? <pattern ref="strno"/>? <pattern ref="us_strname"/> <pattern ref="street_suffix"/> ( ,? <pattern ref="geo_dirs"/> )?
+      <pattern ref="de_street_prefix"/>? (<tok case="CA|UC"/> -?){0,2} <pattern ref="de_street_suffix"/> <pattern ref="strno"/>? 
+      <pattern ref="de_street_prefix"/> (<tok case="CA|UC"/> -?){1,2} <pattern ref="de_street_suffix"/>? <pattern ref="strno"/>?
+      <pattern ref="de_singlewordstreet"/> <pattern ref="strno"/>?
+    </pattern>
+    <pattern id="simple_street_pattern">
+      <pattern ref="geo_dirs"/>? <tok type="ALPHA|NUMALPHA" case="CA|UC"/>{1,3} <pattern ref="street_suffix"/>
+    </pattern>
+    <pattern id="weak_pattern">
+      ($city | <tok type="ALPHA" case="CA|UC"/>{1,2}) <pattern ref="strno"/>
+    </pattern>
+    <value>
+      <or>
+        <pattern cover="0.20" ignore="case" p="0.8"> <pattern ref="full_street_pattern"/> </pattern>
+        <pattern cover="0.05" ignore="case" p="0.7"> <pattern ref="simple_street_pattern"/> </pattern>
+        <pattern cover="0.05" ignore="case" p="0.3"> <pattern ref="weak_pattern"/> </pattern>
+      </or>
+      <length><distribution min="1" max="9" /></length>
+      <pattern cover="0.6" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.2" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+
+      <pattern cover="-1" p="0.85" feature="no"> <lab name="cls1.street" /> </pattern>
+      <pattern cover="-1" p="0.4" feature="no"> <lab name="elg.street" /> </pattern>
+    </value>
+    <context>
+      <pattern cover="0.05" p="0.40"> (street | address) :? $ </pattern>
+      <pattern cover="0.05" p="0.05"> ($name | $organization) (,|:)? $ </pattern>
+      <pattern cover="0.03" p="0.05"> $ (,|;) $city </pattern>
+      <pattern cover="0.03" p="0.2"> $ (,|;) $zip </pattern>
+    </context>
+  </attribute>
+
+  <attribute id="city" type="name" card="0-2" eng="0.51">
+    <pattern id="europe_big_cities" src="addresses/en/europe_big_cities.txt" type="pattern" ignore="case" case="^CA|UC"/>
+    <pattern id="us_big_cities" src="addresses/en/us_big_cities.txt" type="pattern" ignore="case" case="^CA|UC"/>
+    <pattern id="us_selected_cities" src="addresses/en/us_selected_cities.txt" type="pattern" encoding="iso-8859-1" ignore="case" case="^CA|UC"/>
+    <!-- <pattern id="us_places_names"><pattern src="addresses/en/us_places_names.txt" type="pattern" encoding="iso-8859-1" ignore="case" case="^CA|UC"/></pattern> -->
+    <pattern id="uk_big_cities" src="addresses/en/uk_big_cities.txt" type="pattern" ignore="case" case="^CA|UC"/>
+    <pattern id="de_big_cities" src="addresses/de/cities.txt" type="pattern" encoding="windows-1250" ignore="case" case="^CA|UC"/>
+    <pattern id="world_big_cities" src="addresses/en/world_big_cities.txt" type="pattern" ignore="case" case="^CA|UC"/>
+    <pattern id="world_capitals" src="addresses/en/world_capitals.txt" type="pattern" ignore="case" case="^CA|UC"/>
+    <pattern id="en_city_pat"> <tok>^[A-Z][a-z]*(ville|ston|town|polis)$</tok> </pattern>
+    <pattern id="de_city_pat" ignore="case"> 
+      <tok>^[A-Z][a-z]*(berg|burg|brunn|bronn|brück|brücke|damm|kreuz|dorf|stadt|stätt|felde|ingen|haus|hausen|holz|furt|furth|eln|öln|euth|etten|born|shlag|stein|hof|hofen|heim|thal|bach|lach|wald|au|arn|ing|itz)$</tok> (-? (im|in|an|am|a.|über|ob|vor) -? <pattern ref="Contact.street.det"/>? <tok type="ALPHA" case="UC|CA"/>{1,2})?
+      Bad <tok type="ALPHA" case="UC|CA"/>{1,2}
+    </pattern>
+    <pattern id="all_cities" log="0" >
+      <pattern ref="europe_big_cities"/> | <pattern ref="us_big_cities"/> | <pattern ref="uk_big_cities"/> | <pattern ref="de_big_cities"/>
+      <pattern ref="world_big_cities"/> | <pattern ref="world_capitals"/> | <pattern ref="us_selected_cities"/>
+      <pattern ref="en_city_pat"/> | <pattern ref="de_city_pat"/>
+    </pattern>
+    <pattern id="city_suffix"> City | Village | Town </pattern>
+    <pattern id="city_prefix"> City of | Ciudad (del|de) (la|las)? | San </pattern>
+    <value>
+      <pattern cover="0.05" p="0.75" ignore="case" case="^CA|UC">
+        <pattern ref="city_prefix"/>? <pattern ref="all_cities"/> <pattern ref="city_suffix"/>?
+      </pattern>
+      <pattern cover="0.05" ignore="case" p="0.70">
+        <tok case="CA|UC"/>{1,2} <pattern ref="city_suffix"/>
+        <pattern ref="city_prefix"/> <tok case="CA|UC"/>{1,2}
+      </pattern>
+      <length><distribution min="1" max="4" /></length>
+      <!-- don't allow digits etc. in city name -->
+      <pattern type="script" cover="1.0" p="-1.0"> !/\d/.test($) </pattern>
+      <pattern type="script" cover="0.95" p="-1.0"> !/[\-,]/.test($) </pattern>
+      <!-- don't allow most frequent words as cities -->
+      <pattern cover="-1" p="0" log="0"> <pattern ref="Contact.title.stop"/> </pattern>
+      <!-- tags -->
+      <pattern cover="1.0" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.02" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+      
+      <!-- CRF classifier -->
+      <pattern id="cls1_city" cover="-1" p="0.85" feature="no"> <lab name="cls1.city" /> </pattern>  
+      <pattern cover="-1" p="0.9" feature="no"> <lab name="elg.city"/> </pattern>
+    </value>
+    <context>
+      <!-- boost myself a bit if there is a street or org on the left and/or a zip code on the right -->
+      <pattern cover="0.02" p="0.4"> $street (,|-)? $ </pattern>
+      <!-- <pattern cover="0.02" p="0.15" log="1"> $organization (in|of|,|-)? $ </pattern> -->
+      <pattern cover="0.03" p="0.2"> $zip (,|-)? $ </pattern>
+      <or>
+        <pattern cover="0.02" p="0.2"> $ (,|-)? $country </pattern>
+        <pattern cover="0.02" p="0.75"> $ (,|-)? <pattern ref="Contact.title.us_states_abbr"/> </pattern>
+      </or>
+    </context>
+  </attribute>
+
+  <attribute id="region" type="name" card="0-2" eng="0.51">
+    <pattern id="special_regions">
+      Petriny | Chodov | Saarland
+    </pattern>
+    <pattern id="us_counties" src="addresses/en/us_selected_counties.txt" type="pattern" encoding="iso-8859-1" />
+    <pattern id="geo_dirs">
+      Northern | Southern | Western | Eastern | North | South | West | East
+    </pattern>
+    <pattern id="lr_dirs" ignore="case">
+      left | right
+    </pattern>
+    <pattern id="all_regions">
+      <pattern ref="geo_dirs"/>? (<pattern ref="us_counties"/> | <pattern ref="special_regions"/>)
+    </pattern>
+    <value>
+      <pattern cover="0.01" ignore="case" p="0.65">
+        <pattern ref="all_regions"/>
+      </pattern>
+      <pattern cover="0.02" ignore="case" p="0.7">
+        suite <tok type="INT|NUMALPHA"/> ( <pattern ref="geo_dirs"/> | <pattern ref="lr_dirs"/> )?
+      </pattern>
+      <length><distribution min="1" max="6" /></length>
+      
+      <!-- CRF classifier -->
+      <!-- 
+      <pattern cover="-1" p="0.6" feature="no"> <lab name="elg.region"/> </pattern>
+      -->      
+    </value>
+  </attribute>
+
+  <attribute id="country" type="name" card="0-2" eng="0.51" log="0">
+    <pattern id="world_countries_short" src="addresses/en/world_countries_short.txt" type="pattern" encoding="windows-1250" ignore="case" case="^CA|UC"/>
+    <pattern id="world_countries_long" src="addresses/en/world_countries_long.txt" type="pattern" encoding="windows-1250" ignore="case" case="^CA|UC"/>
+    <!--<pattern id="world_countries_abbr" src="addresses/en/world_countries_abbr.txt" type="pattern" ignore="case" case="^CA|UC"/>-->
+    <pattern id="europe_countries" src="addresses/en/europe_countries.txt" type="pattern" encoding="windows-1250" ignore="case" case="^CA|UC"/>
+    <pattern id="us_states_name" src="addresses/en/us_states_name.txt" type="pattern" ignore="case" case="^CA|UC"/>
+    <!--<pattern id="us_states_abbr" src="addresses/en/us_states_abbr.txt" type="pattern" />-->
+    <!--<pattern id="us_states_abbr" type="pattern"> DC|D.C.|D .? C .?|AK|AL|AR|AZ|CA|CO|CT|FL|GA|HI|IA|ID|IL|KS|KY|LA|MA|MD|ME|MI|MN|MO|MS|MT|NC|ND|NE|NH|NJ|NM|NV|NY|PA|PR|RI|SC|SD|TN|TX|UT|VA|VT|WA|WI|WV|WY </pattern>-->
+    <pattern id="usa"> U.S.A. | U . S . A . | USA | U S A | United States (of America)? </pattern>
+    <pattern id="eu"> E.U. | E . U . | EU | European Union | Europe </pattern>
+    <pattern id="uk"> U.K. | U . K . | UK | United Kingdom | Great Britain | GB | G . B . </pattern>
+    <pattern id="de"> BRD | B.R.D. | Bundesrepublik? Deutschland </pattern>
+    <pattern id="major_abbr"> <pattern ref="usa"/> | <pattern ref="eu"/> | <pattern ref="uk"/> | <pattern ref="de"/> </pattern>
+    <pattern id="all_countries" log="0">
+      <pattern ref="world_countries_short"/>
+      <pattern ref="world_countries_long"/>
+    </pattern>
+    <pattern id="city_pat"> <tok type="alpha|apos" case="CA|UC"/>{1,2} (Village|City|Town) </pattern>
+    <value>
+      <pattern cover="0.1" ignore="case" p="0.97" log="0">
+        (Republic of | República de)? <pattern ref="all_countries"/> (Republic | República)?
+      </pattern>
+      <pattern cover="0.01" ignore="case" p="0.97">
+        <pattern ref="us_states_name"/> ,? <pattern ref="usa" />
+      </pattern>
+      <pattern cover="0.01" p="0.89">
+        <pattern ref="us_states_name"/>
+      </pattern>
+      <pattern cover="0.01" p="0.8">
+        <pattern ref="Contact.title.us_states_abbr"/>
+      </pattern>
+      <pattern cover="0.01" ignore="case" p="0.9">
+        <pattern ref="europe_countries"/> ,? <pattern ref="eu" />
+      </pattern>
+      <pattern cover="0.01" ignore="case" p="0.8">
+        <pattern ref="major_abbr"/>
+      </pattern>
+      <pattern cover="0.01" p="0.75">
+        <pattern ref="city_pat"/>
+      </pattern>
+      <length><distribution min="1" max="10" /></length>
+      <!-- tags -->
+      <pattern cover="1.0" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.02" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+      
+      <!-- CRF classifier -->
+      <pattern id="cls1_country" cover="-1" p="0.85" feature="no"> <lab name="cls1.country" /> </pattern>
+      <!-- 
+      <pattern cover="-1" p="0.6" feature="no"> <lab name="elg.country"/> </pattern>
+      -->      
+    </value>
+    <context>
+      <pattern cover="0.02" p="0.4"> <pattern ref="Contact.city.all_cities"/> (,|-)? $ </pattern>
+    </context>
+  </attribute>
+
+  <attribute id="zip" type="name" card="0-1" eng="0.50" prune="0.51">
+    <pattern id="two_ints" log="0">
+      (<tok>^[A-Z]$</tok> -?)? <tok type="INT"/> (- <tok type="INT"/>)?
+    </pattern>
+    <pattern id="two_alphanums"> 
+      <tok type="ALPHANUM"/> -? <tok type="NUMALPHA"/>
+    </pattern>
+    <value>
+      <!-- UK zip codes satisfy A9 9AA|A99 9AA|A9A 9AA|AA9 9AA|AA99 9AA|AA9A 9AA 
+           German codes look like 99999, 99 999, D-99999 -->
+      <pattern type="script" cover="1.0" p="0.75"> 
+       /^([A-Z] (\- )?)?\d{5}$/.test($) || /^([A-Z] (\- )?)?\d{3} \d{2}$/.test($) || /^\d{5} - \d{4}$/.test($) || 
+       /^[A-Z]((\d{1,2})|(\d[A-Z])|([A-Z]\d)|([A-Z]\d(\d|[A-Z])))( | \- )\d[A-Z]{2}$/.test($)
+      </pattern>
+      <pattern cover="1.0" p="0.4">
+        <pattern ref="two_ints"/> | <pattern ref="two_alphanums"/>
+      </pattern>
+      <!--
+      <pattern cover="1.0" p="0.7">
+        <pattern ref="Contact.zip.zipcode_regexp"/>
+      </pattern>
+      -->
+      <length><distribution min="1" max="3" /></length>
+      <pattern cover="1.0" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.2" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1.0" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+      
+      <!-- CRF classifier -->
+      <pattern cover="-1" p="0.8" feature="no"> <lab name="elg.zip"/> </pattern>
+    </value>
+    <context>
+      <!-- prevent other numbers in context -->
+      <pattern cover="0.001" p="0.000001"> <tok type="INT"/> $ </pattern>
+      <pattern cover="0.001" p="0.000001"> $ <tok type="INT"/> </pattern>
+      <!-- prevent ":" on the left which often indicates page numbers like pp: 123-25 -->
+      <pattern cover="0.001" p="0" log="0"> : $ </pattern>
+      <!-- boost myself a bit if there is a city or country on the left -->
+      <pattern cover="0.3" p="0.2"> $city ,? $ </pattern>
+      <pattern cover="0.01" p="0.15"> $country ,? $ </pattern>
+      <pattern cover="0.01" p="0.2"> (code postal | postal code | (CP | C.P) .?) (:|-)? $ </pattern>
+    </context>
+  </attribute>
+
+<!-- *********************************************************************** -->
+<!-- ************************** ORGANIZATION ******************************* -->
+<!-- *********************************************************************** -->
+  
+  <attribute id="organization" type="name" card="0-2" eng="0.55" log="0">
+    <pattern id="company"><pattern src="companies/en/names.txt" type="pattern" encoding="iso-8859-1" /></pattern>
+    <pattern id="form" ignore="case">
+      ,? ( i .? n .? c .? | incorporated | inc . | company | comp .? | l .? t .? d .? | org .? 
+           llc .? | l . l . c . | l.l.c. | plc .? | p . l . c . | p.l.c. 
+           gmbh | g.m.b.h. | e.V | e.V. | e. V. )
+    </pattern>
+    <pattern id="med_org">
+      Organisation | Association | Academy | Clinic | ((University|School|College)? Hospital) | Infirmary | Society | Trust
+    </pattern>
+    <pattern id="med_org_forof">
+      University | School | College | Association | Academy | Society | Library | Institute | Foundation
+    </pattern>
+    <pattern id="org_name">
+      (St .? | The)? ((<tok case="CA"/> (<tok case="CA"/> | , ){0,4}) | $name) ((and | &amp;) <tok case="CA"/>{1,2})?
+    </pattern>
+    <pattern id="geo">
+      $city $country?
+      $city? $country
+    </pattern>
+    <pattern id="org_pat">
+      <pattern ref="med_org"/> <pattern ref="geo"/>? ,? <pattern ref="form"/> 
+      <pattern ref="med_org"/> <pattern ref="geo"/>?
+      <pattern ref="geo"/>? <pattern ref="med_org"/>
+      <pattern ref="geo"/>? <pattern ref="form"/>
+    </pattern>
+    <pattern id="comp_abbr">
+      \( <tok case="UC" type="ALPHA|ACRONYM"/> \)
+    </pattern>
+    <pattern id="works_for">
+     (works|worked) (for|at) | employed by
+    </pattern>
+
+    <pattern id="wofur" ignore="case" log="0" greedy="1">
+     (für|des|der|den){1,2} <tok type="ALPHA" case="CA|UC"/>{1,2}
+    </pattern>
+
+    <pattern id="de_org" ignore="case" log="0" greedy="1"> 
+      Krankenhaus | Poliklinik | Hospitalität | Konsortium 
+      <tok type="ALPHA" case="CA|UC"/>? <tok type="ALPHA" case="CA|UC" ignore="case">ministerium</tok> <pattern ref="wofur"/>?
+      <tok ignore="case">ärztliche</tok>? (centrum|zentrum|vereinigung|verbund|verband|konsortium|amt|gesselschaft
+       arbeitsgemeinschaft|gemeinschaft|kammer|schule|institut|institutes|instituts|universität|klinik|klinikum) <pattern ref="wofur"/>?
+      <tok type="ALPHA" case="CA|UC" ignore="case">(centrum|zentrum|vereinigung|verbund|verband|konsortium|amt|schaft|kammer|institut|schule|universität|klinik|klinikum)$</tok> <pattern ref="wofur"/>?
+      <tok type="ALPHA" case="CA|UC" ignore="case">(kontakt|info).*stelle$</tok>
+    </pattern>
+    <!-- (des | der | die | den | am | zum)? Deutsches? -->
+    <pattern id="de_orgname" ignore="case">
+      <tok type="ALPHA" case="UC|CA"/>{1,2}
+    </pattern>
+    <value>
+      <or>
+      <pattern cover="0.02" ignore="case" p="0.95" log="0" greedy="0">
+        <pattern ref="de_org" /> <pattern ref="de_orgname" /> <pattern ref="geo"/>? <pattern ref="form"/>?
+        <pattern ref="de_orgname" /> <pattern ref="de_org" /> <pattern ref="geo"/>? <pattern ref="form"/>?
+        <pattern ref="de_org" /> <pattern ref="geo"/>? <pattern ref="form"/>?
+      </pattern>
+      
+      <pattern cover="0.02" ignore="case" p="0.95" log="0">
+        <pattern ref="company"/> <pattern ref="org_pat"/> <pattern ref="comp_abbr"/>?
+      </pattern>
+        <pattern cover="0.02" ignore="case" p="0.8" log="0">
+        <tok case="CA|UC"/>{1,4} <pattern ref="org_pat"/> <pattern ref="comp_abbr"/>?
+      </pattern>
+      <pattern cover="0.02" ignore="case" p="0.8">
+        <pattern ref="company"/> <pattern ref="comp_abbr"/>?
+      </pattern>
+      <pattern cover="0.02" ignore="case" p="0.9">
+        <tok case="CA|UC"/>{0,2} (Medical|Health|Science)? (Center|Centre) for <tok case="CA|UC"/>{1,2}
+      </pattern>
+      <pattern cover="0.02" ignore="case" p="0.9">
+        <tok case="CA|UC"/>{1,2} (Medical|Health|Science) (Center|Centre)
+      </pattern>
+      <pattern cover="0.02" p="0.8">
+        <tok case="CA|UC"/>{1,2} OnLine <pattern ref="comp_abbr"/>?
+      </pattern>
+      <pattern cover="0.02" p="0.6">
+        <tok case="CA|UC"/>{2,3} Services <pattern ref="comp_abbr"/>?
+      </pattern>
+      <pattern cover="0.02" p="0.9">
+        <pattern ref="org_name"/> <pattern ref="med_org_forof"/> ((of|for) <tok case="CA|UC"/>{1,2})?
+        <pattern ref="org_name"/>? <pattern ref="med_org_forof"/> (in|of)? $city
+        ($region|$city|$country) <pattern ref="med_org_forof"/> ((of|for) <tok case="CA|UC"/>{1,2})?
+      </pattern>
+      </or>
+      <length><distribution min="1" max="6" /></length>
+      <pattern cover="0.4" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.05" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="0.2" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="0.9" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+      
+      <pattern type="script" cover="1" p="-1"> checkOrgName($) </pattern>
+
+      <pattern cover="-1" p="0.85" feature="no"> <lab name="cls1.organization" /> </pattern>
+      <pattern cover="-1" p="0.3" feature="no"> <lab name="elg.organization" /> </pattern>
+      
+      <!-- restrictions -->
+      <pattern cover="0" p="0" log="0"> <pattern ref="Contact.title.ml"/> </pattern>
+      
+      <!-- in German training data, co-referring org names are not grouped in 1 instance 
+           so do not allow grouping to get better villain score -->
+      <refers> false </refers>
+    </value>
+    <context>
+      <pattern cover="0.02" p="0.6"> <pattern ref="works_for"/> :? $ </pattern>
+    </context>
+  </attribute>
+
+  <attribute id="organization_sponsor" type="name" extends="organization" >
+    <context>
+      <pattern cover="0.05" p="0.55"> 
+        <pattern ref="Contact.name_sponsor.left_en"/> $
+      </pattern>
+	</context>
+  </attribute>
+
+  <attribute id="department" type="name" card="0-2" eng="0.60">
+    <pattern id="dept" ignore="case" log="0"> 
+      (Department | Dept .?) of <tok case="CA|UC"/>{1,3} (and <tok case="CA|UC"/>? <tok case="CA|UC"/>)?
+      <tok type="ALPHA" case="CA|UC"/>{0,2} (Abteilung|Abt|Abt.) (des|der|den|fur|für|f.)? <tok type="ALPHA" case="CA|UC"/>{1,2}
+      <tok type="ALPHA" case="CA|UC"/> -? (Abteilung|Abt|Abt.)
+      geschäftsstelle | landesstelle
+    </pattern>
+    <pattern id="unit"> <tok case="CA|UC"/> {1,3} Unit </pattern>
+    <value>
+      <pattern cover="0.02" ignore="case" p="0.9">
+        <pattern ref="dept"/>
+      </pattern>
+      <pattern cover="0.02" ignore="case" p="0.8">
+        <pattern ref="unit"/>
+      </pattern>
+      <length><distribution min="1" max="6" /></length>
+      <!-- refers to n-ary classifier of id="cls1" defined at class level -->
+      <pattern cover="-1" p="0.85" feature="no"> <lab name="cls1.department" /> </pattern>
+      <pattern cover="-1" p="0.6" feature="no"> <lab name="elg.department" /> </pattern>
+      
+      <!-- restrictions -->
+      <pattern cover="0" p="0" log="0"> <pattern ref="Contact.title.ml"/> </pattern>
+
+      <pattern cover="0.1" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.1" p="-1.0" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+    </value>
+    <context>
+      <pattern cover="0.02" ignore="case" p="0.9">
+        (head | chief) of the $
+      </pattern>
+    </context>
+  </attribute>
+
+<!-- *********************************************************************** -->
+<!-- *************************** CONTACT DETAILS *************************** -->
+<!-- *********************************************************************** -->
+
+  <attribute id="email" type="name" card="0-1" eng="0.60" log="0">
+    <value>
+      <pattern cover="0.98" ignore="case" p="0.9" log="0">
+        <tok type="EMAIL" />
+        <tok type="ALPHA|ALPHANUM"/> ( . <tok type="ALPHA|ALPHANUM"/> )? at ( <tok type="ALPHA|ALPHANUM"/> . ){1,3} (cz|org|com|eu|de|sk|pl|es|gr|ch|fi|gb|uk|hu|au|ru|it|ca)
+      </pattern>
+      <length><distribution min="1" max="3" /></length>
+    </value>
+    <context>
+      <pattern cover="0.1" ignore="case,lemma" p="0.3"> ( email | e-mail | e .? mail ) :? $ </pattern>
+    </context>
+  </attribute>
+  
+  <attribute id="email_webmaster" type="name" card="0-1" eng="0.60" log="0" extends="email">
+    <value>
+      <pattern cover="0.05" ignore="case" p="0.999" log="0">
+        <tok type="EMAIL"> ^(webmaster|admin|root) </tok>
+      </pattern>
+    </value>
+    <context>
+      <pattern cover="0.05" p="0.3"> <pattern ref="Contact.name_webmaster.left_en"/> $ </pattern>
+    </context>
+  </attribute>
+
+  <attribute id="phone" type="name" card="0-4" eng="0.75" prune="0.20">
+    <pattern id="prefix_bracketed">
+      \( \+? (<tok type="INT">^\d{1,5}$</tok> | <tok type="INT">^\d{1,4}$</tok>{2,3}) \)
+    </pattern>
+    <pattern id="prefix_unbracketed">
+      \+? (<tok type="INT">^\d{1,5}$</tok> | <tok type="INT">^\d{1,4}$</tok>{2,3})
+    </pattern>
+    <pattern id="num_wo_prefix" log="0">
+      (-|/)? <tok type="INT">^\d{5,9}$</tok>
+      ((-|/)? <tok type="INT">^\d{3,4}$</tok>){2,3}
+      ((-|/)? <tok type="INT">^\d{2,3}$</tok>){2,5}
+      ((-|/)? <tok type="INT">^\d{2,5}$</tok>){1,2} -? <tok type="INT">^\d$</tok>
+      (-|/)? <tok type="INT">^\d{1,2}$</tok> -? <tok type="INT">^\d{3,5}$</tok>{2,3}
+      <tok type="INT">^\d$</tok> (-? <tok type="INT">^\d{3,4}$</tok>){2,3}
+    </pattern>
+    <pattern id="cc"> \+? <tok type="INT">^\d{1,3}$</tok> (-|/)? </pattern>
+    <value>
+      <or>
+        <pattern id="v1" cover="0.01" p="0.95" log="0">
+          <pattern ref="cc"/>? <pattern ref="prefix_bracketed"/> <pattern ref="num_wo_prefix"/>
+        </pattern>
+        <pattern id="v2" cover="0.01" p="0.65">
+          <pattern ref="prefix_unbracketed"/> <pattern ref="num_wo_prefix"/>
+        </pattern>
+        <pattern id="v3" cover="0.01" p="0.05"> 
+           <pattern ref="cc"/>? <tok type="INT"/> ( -? <tok type="INT"/> ){1,2}
+        </pattern>
+        <pattern id="v4" cover="0.01" p="0.65">
+          <tok type="INT">^\d{3}$</tok> ( - <tok type="INT">^\d{3,8}$</tok> ){1}
+          <tok type="INT">^\d{2,3}$</tok> ( - <tok type="INT">^\d{3,4}$</tok> ){2,3} 
+        </pattern>
+        <pattern id="v5" cover="-1" p="0.05"> <tok type="INT"/>{2,4} </pattern>
+      </or>
+ 
+      <length><distribution min="1" max="10" /></length>
+      <pattern cover="1.0" p="-1" type="format"> has_one_parent </pattern>
+      <pattern cover="0.02" p="-1" type="format"> fits_in_parent </pattern>
+      <pattern cover="1.0" p="-1" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1.0" p="-1" type="format"> no_crossed_block_tags </pattern>
+      
+      <pattern type="script" cover="0.95" p="-1"> checkTel($) </pattern>
+      <refers> sameTel($, $other) </refers>
+      
+      <!-- restrictions -->
+      <pattern cover="0.01" p="0.001" type="pattern"> <pattern ref="Contact.title.ml"/> </pattern>
+      <pattern cover="0.01" p="0.001"> <pattern ref="_datatypes.year"/> - <pattern ref="_datatypes.year"/> </pattern>
+      
+      <!-- CRF classifier -->
+      <pattern id="elg_phone" cover="-1" p="0.9" feature="no"> <lab name="elg.phone"/> | <lab name="elg.phone_ext"/> </pattern>
+      
+      <pattern cover="1.0" p="-1.0" type="pattern"> 
+        <pattern ref="v1"/> | <pattern ref="v2"/> | <pattern ref="v3"/> | <pattern ref="v4"/> 
+        <pattern ref="v5"/> | <pattern ref="elg_phone"/>
+      </pattern>
+    </value>
+    <context>
+      <pattern cover="0.03" ignore="case" p="0.4"> 
+         ( tel .? | phone | telephone | cell | cellphone | cellular | line | ext .? | fax 
+           tollfree | toll -? free | number is | numbers are | fon | telefon ) :? $
+      </pattern>
+      <pattern cover="0.03" ignore="case" p="0.4">
+        $ \(? (fax | cell | cellphone | tollfree | toll -? free) \)?
+      </pattern>
+      <pattern cover="-1" p="0.001"> <tok type="INT"/> <lab name="INLINE|BLOCK|BR$" neg="1"/> $ </pattern>
+      <pattern cover="-1" p="0.001"> $ <lab name="INLINE|BLOCK|BR$" neg="1"/> <tok type="INT"/> </pattern>
+      <!-- negative stuff -->
+      <pattern cover="-1" p="0" ignore="case">
+        (<tok ignore="case">(konto|bank|steuer)</tok> | IBAN | SWIFT | BLZ) <tok/>{0,3} :? $
+      </pattern>
+    </context>
+  </attribute>
+
+<!-- *********************************************************************** -->
+<!-- ******************************** OTHER ******************************** -->
+<!-- *********************************************************************** -->
+
+  <attribute id="doctitle" type="name" card="0" eng="0.0">
+    <value>
+      <length><distribution min="1" max="10" /></length>
+      <!-- 
+      <pattern id="about" cover="0.05" ignore="case" p="0.1">
+        About <tok/>{1,9}
+      </pattern> -->
+      <pattern cover="0.75" p="0.75"> <tag name="title"/> <tok/>{1,9} <tag name="/title"/> </pattern>
+      <pattern cover="0.4" p="0.5"> <tag name="h1"/> <tok/>{1,9} <tag name="/h1"/> </pattern>
+      <pattern cover="0.3" p="0.3"> <tag name="h2"/> <tok/>{1,9} <tag name="/h2"/> </pattern>
+      <pattern cover="0.1" p="0.2"> <tag name="h3"/> <tok/>{1,9} <tag name="/h3"/> </pattern>
+    </value>
+  </attribute>
+
+  <attribute id="mesh" type="name" card="0" eng="0.0" prune="0.20" enabled="0">
+    <pattern id="mesh_selected" src="mesh/en/CDEFN3.txt" type="pattern" />
+    <value>
+      <length><distribution min="1" max="10" /></length>
+      <pattern cover="0.55" p="0.54"> <pattern ref="mesh_selected"/> </pattern>
+      <pattern cover="0.05" p="-1.0" type="format"> has_one_parent </pattern>
+      <pattern cover="0.05" p="-1.0" type="format"> fits_in_parent </pattern>
+    </value>
+  </attribute>
+  
+</class>
+
+<!-- *********************************************************************** -->
+<!-- ************************** POST-PROCESSING **************************** -->
+<!-- *********************************************************************** -->
+
+<finally>
+  <script> transformContacts(); </script>
+</finally>
+
+</model>

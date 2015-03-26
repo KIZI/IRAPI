@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<!DOCTYPE model SYSTEM "../eol.dtd">
+<!--
+     Extracts all texts
+-->
+<model name="media">
+
+<import model="../datatypes.xml" />
+
+<!-- functions used by some script axioms -->
+<script src="media.js" />
+
+<!-- all references to resources below will be resolved relative to this base url -->
+<base url="../../../data"/>
+
+<class id="text_record" prune="0.05">
+  
+  <pattern id="media_near_title" type="pattern" cover="0.3" log="0" enabled="1">
+    ^ $title <tok/>{0,10} $description
+  </pattern>
+  
+  <pattern id="similar_title_desc" type="script" cover="0.6" p="-1" cond="all">
+    altSimilarToText($title, $description) >= 0.2
+  </pattern>
+  
+  <attribute id="title" type="name" card="1" prior="0.01" eng="0.7" log="0" prune="0.1">
+    <pattern id="words1"> <tok>^[^&lt;]</tok> </pattern>
+    <pattern id="words2"> <tok>^[^&lt;]</tok>{2,5} </pattern>
+    <pattern id="words3"> <tok>^[^&lt;]</tok>{6,35} </pattern>
+
+    <value>
+
+      <or>
+        <pattern p="0.6"> <tag name="caption"/> <pattern ref="words1"/> <tag name="/caption"/> </pattern>
+        <pattern p="0.7"> <tag name="caption"/> <pattern ref="words2"/> <tag name="/caption"/> </pattern>
+        <pattern p="0.8"> <tag name="caption"/> <pattern ref="words3"/> <tag name="/caption"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h1"/>      <pattern ref="words1"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.7"> <tag name="h1"/>      <pattern ref="words2"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.8"> <tag name="h1"/>      <pattern ref="words3"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.8" type="xpath" log="0"> //*[(local-name()='h1' or local-name()='H1')] </pattern>
+      </or>
+      <or>
+        <pattern p="0.6" log="0"> <tag name="h2"/>      <pattern ref="words1"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.7" log="0"> <tag name="h2"/>      <pattern ref="words2"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.8" log="0"> <tag name="h2"/>      <pattern ref="words3"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.8" type="xpath" log="0"> //*[(local-name()='h2' or local-name()='H2')] </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h3"/>      <pattern ref="words1"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.7"> <tag name="h3"/>      <pattern ref="words2"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.8"> <tag name="h3"/>      <pattern ref="words3"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.8" type="xpath" log="0"> //*[(local-name()='h3' or local-name()='H3')] </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h4"/>      <pattern ref="words1"/> <tag name="/h4"/> </pattern>
+        <pattern p="0.7"> <tag name="h4"/>      <pattern ref="words2"/> <tag name="/h4"/> </pattern>
+        <pattern p="0.8"> <tag name="h4"/>      <pattern ref="words3"/> <tag name="/h4"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h5"/>      <pattern ref="words1"/> <tag name="/h5"/> </pattern>
+        <pattern p="0.7"> <tag name="h5"/>      <pattern ref="words2"/> <tag name="/h5"/> </pattern>
+        <pattern p="0.8"> <tag name="h5"/>      <pattern ref="words3"/> <tag name="/h5"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="p"/>      <pattern ref="words1"/> <tag name="/p"/> </pattern>
+        <pattern p="0.7"> <tag name="p"/>      <pattern ref="words2"/> <tag name="/p"/> </pattern>
+        <pattern p="0.8"> <tag name="p"/>      <pattern ref="words3"/> <tag name="/p"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="div"/>      <pattern ref="words1"/> <tag name="/div"/> </pattern>
+        <pattern p="0.7"> <tag name="div"/>      <pattern ref="words2"/> <tag name="/div"/> </pattern>
+        <pattern p="0.8"> <tag name="div"/>      <pattern ref="words3"/> <tag name="/div"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="strong"/>      <pattern ref="words1"/> <tag name="/strong"/> </pattern>
+        <pattern p="0.7"> <tag name="strong"/>      <pattern ref="words2"/> <tag name="/strong"/> </pattern>
+        <pattern p="0.8"> <tag name="strong"/>      <pattern ref="words3"/> <tag name="/strong"/> </pattern>
+      </or>
+      
+      <pattern p="0.005"> <tok/>? (Sendung) <tok/>? </pattern>
+      <pattern p="0"> (Wirtschaft|<tok/> zum Thema) </pattern>
+      <pattern p="0.005"> <tok/>{0,3} (op social media|bekeken) </pattern>
+      
+      <pattern type="script" cover="0.8" p="-1">
+        <![CDATA[
+    	getBlacklistedWordCnt($) <= 1 && getBlacklistedWordPortion($) < 0.1
+    	]]>
+  	  </pattern>
+
+      <pattern type="script" cover="1" p="-1">
+      	!isBlacklisted($)
+      </pattern>
+      
+      <pattern type="script" cover="1" p="-1">
+    	!containsFormObjects($)
+  	  </pattern>
+  	  
+      <length><distribution min="1" max="30" /></length>
+
+      <pattern cover="0.2" type="format"> has_one_parent </pattern> <!-- there may easily be spans inside a heading -->
+      <pattern cover="1" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" type="format"> no_crossed_block_tags </pattern>
+    </value>
+  </attribute>
+
+
+  <attribute id="description" type="text" card="0-3" prior="0.01" eng="0.7" log="0" prune="0.1">
+    <value>
+      <pattern id="xp1_desc" type="xpath" p="0.8" log="0">
+        //*[(local-name()='p' or local-name()='div')]
+      </pattern>
+      
+      <!-- lowercase (or true case) tag names result from XHTML pages, but HTML pages always yield uppercase elements in the Neko implementation -->
+      <pattern id="xp2_desc" type="xpath" p="0.8" log="0">
+        //*[(local-name()='P' or local-name()='DIV')]
+      </pattern>
+      
+      <pattern type="script" cover="0.8" p="-1">
+        <![CDATA[
+    	getBlacklistedWordCnt($) <= 1 && getBlacklistedWordPortion($) < 0.1
+    	]]>
+  	  </pattern>
+
+      <pattern type="script" cover="1" p="-1">
+      	!isBlacklisted($)
+      </pattern>
+      
+      <pattern type="script" cover="1" p="-1">
+    	!containsFormObjects($)
+  	  </pattern>
+      
+      <length><distribution min="5" max="500" /></length>
+
+      <pattern cover="0.2" type="format"> has_one_parent </pattern> <!-- there may easily be spans inside a description -->
+      <pattern cover="1" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" type="format"> no_crossed_block_tags </pattern>
+    </value>
+  </attribute>
+
+</class>
+
+</model>

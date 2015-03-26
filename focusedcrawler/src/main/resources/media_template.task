@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<task name="media tester">
+
+<desc>Extracts media information from input pages</desc>
+<lastRun></lastRun>
+<tempdir> c:/keg/work/temp </tempdir>
+<outdir> c:/keg/work/out </outdir>
+<datamodel> wtf </datamodel>
+<mode> test </mode>
+
+<pipeline>
+
+<proc engine="uep.ex.api.Ex">
+  <param name="cfg"> ../ex/config.cfg </param>
+  <param name="parser_nbest"> 1 </param>
+  <param name="parser_nbest_show"> 1 </param>
+  <param name="max_parse_time"> 60000 </param>
+  <param name="model"> ../ex/data/media/media1.xml </param>
+</proc>
+
+<!--
+<proc engine="uep.iet.components.EvaluatorImpl" >
+  <param name="method"> occurrence </param>
+</proc>
+-->
+
+<!-- don't prune standalone stuff for now:
+<proc engine="uep.iet.components.Transformer" >
+  <param name="rename"> 
+    $standalone:- 
+  </param>
+</proc>
+-->
+
+<!-- don't eval for now:
+<proc engine="uep.iet.components.eval.PresenceEvaluator" >
+  <param name="method"> value </param>
+</proc>
+-->
+
+</pipeline>
+
+<set name="all" basedir="../data/media">
+
+<!-- This set is left intentionally empty in this template extraction task definition. 
+     Document(s) will be inserted here programatically. -->
+
+</set>
+
+</task>

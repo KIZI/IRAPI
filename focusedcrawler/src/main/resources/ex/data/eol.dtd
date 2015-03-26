@@ -1,0 +1,301 @@
+<!-- 
+     $Id: eol.dtd 1877 2009-03-28 13:19:38Z labsky $
+     A DTD for extraction ontology language 
+-->
+
+<!ELEMENT model (class|units|datatypes|import|base|script|finally|classifier)* >
+<!ATTLIST model
+  name         CDATA    #IMPLIED
+  version      CDATA    #FIXED  '0.2' >
+
+<!ELEMENT class (attribute|axiom|pattern|script|classifier)* >
+<!ATTLIST class
+  id           CDATA    #REQUIRED 
+  prune        CDATA    #IMPLIED
+  counts       CDATA    #IMPLIED
+  enabled      (yes|no|true|false|1|0) "1"
+  log          (yes|no|true|false|1|0) "0" 
+  learnFormatting  (yes|no|true|false|1|0) "0"
+  fmtPrecFactor    CDATA   #IMPLIED
+  fmtRecallFactor  CDATA   #IMPLIED
+  >
+
+<!-- name may be ommited if the attribute extends some base atribute and the names remain identical -->
+<!ELEMENT attribute (pattern|value|context|axiom|classifier)* >
+<!ATTLIST attribute
+  id           CDATA    #REQUIRED
+  type         CDATA    #IMPLIED
+  dbname       CDATA    #IMPLIED
+  dim          CDATA    "1"
+  card         CDATA    #IMPLIED
+  units        CDATA    #IMPLIED
+  abstract     CDATA    #IMPLIED
+  extends      CDATA    #IMPLIED
+  prior        CDATA    "-1"
+  mutable      CDATA    "0"
+  eng          CDATA    "0.75"
+  prune        CDATA    #IMPLIED 
+  enabled      (yes|no|true|false|1|0) "1"
+  log          (yes|no|true|false|1|0) "0" 
+  learnFormatting  (yes|no|true|false|1|0) "0"
+  fmtPrecFactor    CDATA   #IMPLIED
+  fmtRecallFactor  CDATA   #IMPLIED
+  >
+
+<!-- names often used in text to refer to this attribute -->
+<!-- now ignored, in future may be used to automatically generate context patterns -->
+<!ELEMENT name (#PCDATA) >
+<!ATTLIST name >
+
+<!-- attributes and children of this attribute constrain values of this attribute -->
+<!ELEMENT value (pattern|distribution|length|card|contains|axiom|transform|refers|and|or)* >
+<!ATTLIST value >
+
+<!ELEMENT context (pattern|and|or)* >
+<!ATTLIST context >
+
+<!-- specifies distribution of (1) numeric attribute's value, (2) textual attribute's length -->
+<!ELEMENT distribution (#PCDATA|enum)* >
+<!ATTLIST distribution
+  min          CDATA    #IMPLIED
+  max          CDATA    #IMPLIED
+  unit         CDATA    #IMPLIED 
+  type         (minmax|table|normal|mixture)   "minmax" >
+
+<!ELEMENT enum (#PCDATA) >
+<!ATTLIST enum
+  p            CDATA    #IMPLIED
+  cover        CDATA    #IMPLIED >
+
+<!ELEMENT or (pattern)* >
+<!ATTLIST or >
+
+<!ELEMENT and (pattern)* >
+<!ATTLIST and 
+  cover        CDATA    "-1"
+  p            CDATA    "-1" >
+
+<!ELEMENT pattern (#PCDATA|att|tok|pattern|unit|tag|lab|cond)* >
+<!-- ignore: e.g. 'case' or 'lemma': by default ignore case or different forms of single lemma
+cover: percentage of attribute values covered by the contained patterns
+p: P(attribute | some_pattern_matches)
+src: text file containing per-line phrases (alternatively, content may be in PCDATA)
+type: reserved for future alternative list formats
+encoding: src file's encoding 
+ignore: list of ignorable properties; e.g. "case, lemma"
+case: force all tokens in pattern to be of particular case; e.g. "CA | UC"
+The following is only supported for class-level axioms and class-level patterns of type=script|pattern:
+cond attribute: any | all | n/a (whether the attributes referenced from the pattern must be defined for the instance)
+cond child (overrides cond attribute): script expression which must evaluate to true in order for the pattern to apply
+-->
+<!ATTLIST pattern
+  id           CDATA    #IMPLIED
+  ref          CDATA    #IMPLIED
+  src          CDATA    #IMPLIED
+  type         (pattern|list|script|format|instance|xpath)    "pattern"
+  encoding     CDATA    "utf-8"
+  ignore       CDATA    #IMPLIED
+  case         CDATA    #IMPLIED
+  cover        CDATA    "-1"
+  p            CDATA    "-1"
+  length       CDATA    #IMPLIED
+  cond         CDATA    #IMPLIED
+  within       CDATA    #IMPLIED
+  greedy       (no|yes|true|false|1|0) "0"
+  feature      (no|yes|true|false|1|0) "1" 
+  enabled      (yes|no|true|false|1|0) "1"
+  linear       (yes|no|true|false|1|0) "0"
+  neg          (yes|no|true|false|1|0) "0"
+  log          (yes|no|true|false|1|0) "0">
+
+<!ELEMENT length (distribution) >
+<!-- length in child components: either tokens or contained attributes -->
+<!ATTLIST length >
+
+<!ELEMENT card (distribution) >
+<!-- attribute cardinality distribution; specify this if the dist is known; use the card attribute otherwise to just specify min and max -->
+<!ATTLIST card >
+
+<!-- specifies attributes which MAY be contained in the parent aggregate attribute -->
+<!ELEMENT contains (att*) >
+<!ATTLIST contains >
+
+<!-- ref: id of the referenced attribute; following attributes only used within 'contains':
+card: how many different values the referenced attribute may have in this context
+cover: percentage of the aggregate attribute values containing the referenced attribute
+p: p(aggregate_attribute_contains_referenced | referenced_attribute) -->
+<!ELEMENT att (card?) >
+<!ATTLIST att
+  ref          CDATA    #REQUIRED
+  card         CDATA    "1"
+  cover        CDATA    "-1"
+  p            CDATA    "-1" >
+
+<!ELEMENT axiom (#PCDATA|cond)* >
+<!ATTLIST axiom
+  id           CDATA    #IMPLIED
+  cond         CDATA    #IMPLIED
+>
+
+<!ELEMENT transform (#PCDATA|cond)* >
+<!ATTLIST transform
+  id           CDATA    #IMPLIED
+  cond         CDATA    #IMPLIED
+>
+
+<!ELEMENT refers (#PCDATA)* >
+<!ATTLIST refers >
+
+<!-- unit definitions -->
+<!ELEMENT units (quantity*)>
+<!ATTLIST units >
+
+<!ELEMENT quantity (unit*)>
+<!ATTLIST quantity
+  id           CDATA    #REQUIRED
+  baseunit     CDATA    #REQUIRED>
+
+<!ELEMENT unit (#PCDATA)>
+<!ATTLIST unit
+  id           CDATA    #IMPLIED
+  convert      CDATA    #IMPLIED>
+
+<!-- tok: exactly 1 token specified using attributes.
+pcdata: token text, if constrained to a specific word (also see ignore)
+ignore: if text is specified, set ignore='case' or ignore='lemma' to broaden matches
+type: constraint for token type: e.g. ALPHANUM, or combination ALPHANUM|ALPHA|NUM
+case: constraint for token case: e.g. LC,UC,CAP
+pos: constraint for pos tag: e.g. NP or JJ|CD -->
+<!ELEMENT tok (#PCDATA)>
+<!ATTLIST tok
+  ignore       CDATA    #IMPLIED
+  type         CDATA    #IMPLIED
+  case         CDATA    #IMPLIED
+  pos          CDATA    #IMPLIED >
+
+<!ELEMENT tag EMPTY >
+<!ATTLIST tag
+  name         CDATA    #IMPLIED
+  type         CDATA    #IMPLIED
+  form         CDATA    #IMPLIED >
+
+<!ELEMENT lab EMPTY >
+<!ATTLIST lab
+  name         CDATA    #IMPLIED 
+  neg          (yes|no|true|false|1|0) "0" >
+
+<!-- Deprecated: Phrase can be part of a token pattern definition. 
+It matches a phrase which: 
+a) matches a character-level regexp specified as phrase content (overrides tokenizer),
+b) has the requested label set.
+-->
+<!-- <!ELEMENT phr (#PCDATA)> <!ATTLIST phr  label        CDATA    #IMPLIED > -->
+
+<!-- Instead of <phr>, use e.g. <lab name="^S|div"/> to match label starts, ends or bodies.
+     To match phrases spanning multiple tokens, either:
+     - use regular token-level token patterns, or
+     - TODO: in the <tokenizer> section under <model>, define user-defined token types by 
+       assigning a token type to a set of char-level regular expressions that match raw text of document 
+       before default tokenization is done by ex. A single token of the defined type is created for 
+       anything that matches at least one of the corresponding regexps. It is possible to specify 
+       for each user-defined token type whether it is allowed to cross tag boundaries (and for which tags). 
+-->
+
+<!ELEMENT datatypes (pattern)* >
+<!ATTLIST datatypes >
+
+<!ELEMENT import EMPTY >
+<!ATTLIST import
+  model        CDATA    #REQUIRED
+>
+
+<!ELEMENT base EMPTY >
+<!ATTLIST base
+  url          CDATA    #REQUIRED
+>
+
+<!ELEMENT script (#PCDATA)* >
+<!ATTLIST script
+  src          CDATA    #IMPLIED
+>
+
+<!ELEMENT classifier (feature|param)* >
+<!ATTLIST classifier
+  id           CDATA    #REQUIRED
+  datasource   CDATA    #REQUIRED
+  classtype    (attribute|instance)   #REQUIRED
+  name         CDATA    #REQUIRED
+  model        CDATA    #REQUIRED
+  elements     CDATA    #REQUIRED
+  confidencethreshold CDATA #IMPLIED
+>
+
+<!ELEMENT feature EMPTY >
+<!ATTLIST feature
+  type         (model|ngram)  #REQUIRED
+  ignore       CDATA          #IMPLIED
+  length       CDATA          #IMPLIED
+  minocc       CDATA          #IMPLIED
+  maxcnt       CDATA          #IMPLIED
+  mi           CDATA          #IMPLIED
+  position     CDATA          #IMPLIED
+  source       (document|file)  #IMPLIED
+  book         CDATA          #IMPLIED
+>
+
+<!ELEMENT param (#PCDATA)* >
+<!ATTLIST param
+  name         CDATA    #REQUIRED
+>
+
+<!ELEMENT finally (script)* >
+<!ATTLIST finally >
+
+<!-- 
+$Log: eol.dtd,v $
+Revision 1.17  2007/02/03 22:15:25  labsky
+support for AC IC patterns, length distro evidence, many fixes, new bugs
+
+Revision 1.16  2007/01/16 01:21:24  labsky
+type for distr not mandatory
+
+Revision 1.15  2007/01/14 23:22:36  labsky
+new pattern types supported: format and script, adding AC prune prob threshold
+
+Revision 1.14  2007/01/07 22:43:14  labsky
+adding distributions for length, cardinality, numeric values
+
+Revision 1.13  2007/01/05 22:27:52  labsky
+adding eng (engaged prob) as attribute of the <attribute> tag
+
+Revision 1.12  2006/10/12 08:17:43  labsky
+large 'list' support for pattern
+
+Revision 1.11  2006/03/11 22:31:45  labsky
+adding prior=-1 to attribute, defaulting p,cover=-1
+
+Revision 1.10  2006/02/27 17:56:58  labsky
+- merging pattern + list into pattern
+- adding datatypes section for dtype patterns
+- adding import
+- adding enum to distribution
+
+Revision 1.9  2006/02/13 00:04:19  labsky
+pattern-related changes
+
+Revision 1.8  2006/02/06 23:28:10  labsky
+simplifications and support for expressing token patterns,
+name conveted to list, element nesting clarified
+
+Revision 1.7  2005/12/12 22:59:21  labsky
+adsing mutable attribute to <attribute> - denotes if attribute
+can change from day to day for the very same product (e.g. price)
+
+Revision 1.6  2005/11/23 14:07:29  labsky
+adding dbname xml attribute of tag <attribute>,
+used to store attribute values in object_table
+
+Revision 1.5  2005/11/16 10:47:06  labsky
+minor changes
+
+-->

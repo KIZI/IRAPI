@@ -1,0 +1,242 @@
+<?xml version="1.0" ?>
+<!DOCTYPE model SYSTEM "../eol.dtd">
+<!--
+     $Id: contact_en6.xml 1880 2009-03-28 13:23:28Z labsky $
+     Extraction ontology for initial medieq criteria
+-->
+<model name="media">
+
+<import model="../datatypes.xml" />
+
+<!-- functions used by some script axioms -->
+<script src="media.js" />
+
+<!-- all references to resources below will be resolved relative to this base url -->
+<base url="../../../data"/>
+
+<class id="mrec" prune="0.05">
+  
+  <pattern id="media_near_title" type="pattern" cover="0.3" log="0" enabled="1">
+    ^ ( ($title <tok/>{0,10} $media) | ($media <tok/>{0,10} $title) ) $
+  </pattern>
+  
+  <pattern id="media_next_to_title" type="pattern" cover="0.1" log="0" enabled="1">
+    ^ ( ($title $media) | ($media $title) ) $
+  </pattern>
+
+  <pattern id="starts_with_media_or_title" type="pattern" cover="0.6" log="0" enabled="1">
+    ^ ($title | $media)
+  </pattern>
+  
+  <!-- 
+  <pattern id="starts_with_desc" type="pattern" p="0" cover="0" log="1" enabled="1">
+    ^ $description
+  </pattern>
+  -->
+   
+  <pattern id="similar_alt_title" type="script" cover="0.6" p="-1" cond="all">
+    altSimilarToText($media, $title) >= 0.5
+  </pattern>
+
+  <pattern id="similar_alt_desc" type="script" cover="0.2" p="-1" cond="all">
+    altSimilarToText($media, $description) >= 0.3
+  </pattern>
+  
+  <!--
+  p="0.6" 
+  <pattern cover="0.05" p="-1.0" type="format"> has_one_parent </pattern>
+  <pattern cover="0.03" p="-1.0" type="format"> fits_in_parent </pattern>
+  <pattern cover="1"    p="-1.0" type="format"> no_crossed_inline_tags </pattern>
+  <pattern cover="0.03" p="-1.0" type="format"> no_crossed_block_tags </pattern>
+  -->
+  <pattern cover="0.05" type="format"> no_crossed_block_tags </pattern>
+  
+  <attribute id="title" type="name" card="1" prior="0.01" eng="0.7" log="0" prune="0.1">
+    <pattern id="words1"> <tok>^[^&lt;]</tok> </pattern>
+    <pattern id="words2"> <tok>^[^&lt;]</tok>{2,5} </pattern>
+    <pattern id="words3"> <tok>^[^&lt;]</tok>{6,35} </pattern>
+
+    <value>
+
+      <or>
+        <pattern p="0.6"> <tag name="caption"/> <pattern ref="words1"/> <tag name="/caption"/> </pattern>
+        <pattern p="0.7"> <tag name="caption"/> <pattern ref="words2"/> <tag name="/caption"/> </pattern>
+        <pattern p="0.8"> <tag name="caption"/> <pattern ref="words3"/> <tag name="/caption"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h1"/>      <pattern ref="words1"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.7"> <tag name="h1"/>      <pattern ref="words2"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.8"> <tag name="h1"/>      <pattern ref="words3"/> <tag name="/h1"/> </pattern>
+        <pattern p="0.8" type="xpath" log="0"> //*[(local-name()='h1' or local-name()='H1')] </pattern>
+      </or>
+      <or>
+        <pattern p="0.6" log="0"> <tag name="h2"/>      <pattern ref="words1"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.7" log="0"> <tag name="h2"/>      <pattern ref="words2"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.8" log="0"> <tag name="h2"/>      <pattern ref="words3"/> <tag name="/h2"/> </pattern>
+        <pattern p="0.8" type="xpath" log="0"> //*[(local-name()='h2' or local-name()='H2')] </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h3"/>      <pattern ref="words1"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.7"> <tag name="h3"/>      <pattern ref="words2"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.8"> <tag name="h3"/>      <pattern ref="words3"/> <tag name="/h3"/> </pattern>
+        <pattern p="0.8" type="xpath" log="0"> //*[(local-name()='h3' or local-name()='H3')] </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h4"/>      <pattern ref="words1"/> <tag name="/h4"/> </pattern>
+        <pattern p="0.7"> <tag name="h4"/>      <pattern ref="words2"/> <tag name="/h4"/> </pattern>
+        <pattern p="0.8"> <tag name="h4"/>      <pattern ref="words3"/> <tag name="/h4"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="h5"/>      <pattern ref="words1"/> <tag name="/h5"/> </pattern>
+        <pattern p="0.7"> <tag name="h5"/>      <pattern ref="words2"/> <tag name="/h5"/> </pattern>
+        <pattern p="0.8"> <tag name="h5"/>      <pattern ref="words3"/> <tag name="/h5"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="p"/>      <pattern ref="words1"/> <tag name="/p"/> </pattern>
+        <pattern p="0.7"> <tag name="p"/>      <pattern ref="words2"/> <tag name="/p"/> </pattern>
+        <pattern p="0.8"> <tag name="p"/>      <pattern ref="words3"/> <tag name="/p"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="div"/>      <pattern ref="words1"/> <tag name="/div"/> </pattern>
+        <pattern p="0.7"> <tag name="div"/>      <pattern ref="words2"/> <tag name="/div"/> </pattern>
+        <pattern p="0.8"> <tag name="div"/>      <pattern ref="words3"/> <tag name="/div"/> </pattern>
+      </or>
+      <or>
+        <pattern p="0.6"> <tag name="strong"/>      <pattern ref="words1"/> <tag name="/strong"/> </pattern>
+        <pattern p="0.7"> <tag name="strong"/>      <pattern ref="words2"/> <tag name="/strong"/> </pattern>
+        <pattern p="0.8"> <tag name="strong"/>      <pattern ref="words3"/> <tag name="/strong"/> </pattern>
+      </or>
+      
+      <pattern p="0.005"> <tok/>? (Sendung) <tok/>? </pattern>
+      <pattern p="0"> (Wirtschaft|<tok/> zum Thema) </pattern>
+      <pattern p="0.005"> <tok/>{0,3} (op social media|bekeken) </pattern>
+      
+      <pattern type="script" cover="0.8" p="-1">
+        <![CDATA[
+    	getBlacklistedWordCnt($) <= 1 && getBlacklistedWordPortion($) < 0.1
+    	]]>
+  	  </pattern>
+
+      <pattern type="script" cover="1" p="-1">
+      	!isBlacklisted($)
+      </pattern>
+      
+      <pattern type="script" cover="1" p="-1">
+    	!containsFormObjects($)
+  	  </pattern>
+      
+      <length><distribution min="1" max="30" /></length>
+
+      <pattern cover="0.2" type="format"> has_one_parent </pattern> <!-- there may easily be spans inside a heading -->
+      <pattern cover="1" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" type="format"> no_crossed_block_tags </pattern>
+    </value>
+  </attribute>
+
+
+  <attribute id="description" type="text" card="0-3" prior="0.01" eng="0.7" log="0" prune="0.1">
+    <value>
+      <pattern id="xp1_desc" type="xpath" p="0.8" log="0">
+        //*[(local-name()='p' or local-name()='div') and not(*[(local-name()='p' or local-name()='div' or local-name()='script' or local-name()='input')])]
+      </pattern>
+      
+      <!-- lowercase (or true case) tag names result from XHTML pages, but HTML pages always yield uppercase elements in the Neko implementation -->
+      <pattern id="xp2_desc" type="xpath" p="0.8" log="0">
+        //*[(local-name()='P' or local-name()='DIV') and not(*[(local-name()='P' or local-name()='DIV' or local-name()='SCRIPT' or local-name()='INPUT')])]
+      </pattern>
+      
+      <pattern type="script" cover="0.8" p="-1">
+        <![CDATA[
+    	getBlacklistedWordCnt($) <= 1 && getBlacklistedWordPortion($) < 0.1
+    	]]>
+  	  </pattern>
+
+      <pattern type="script" cover="1" p="-1">
+      	!isBlacklisted($)
+      </pattern>
+      
+      <pattern type="script" cover="1" p="-1">
+    	!containsFormObjects($)
+  	  </pattern>
+      
+      <length><distribution min="5" max="500" /></length>
+
+      <pattern cover="0.2" type="format"> has_one_parent </pattern> <!-- there may easily be spans inside a description -->
+      <pattern cover="1" type="format"> fits_in_parent </pattern>
+      <pattern cover="1" type="format"> no_crossed_inline_tags </pattern>
+      <pattern cover="1" type="format"> no_crossed_block_tags </pattern>
+    </value>
+  </attribute>
+
+  
+  <attribute id="media" type="xml" card="1" prior="0.01" eng="1" log="0" enabled="1">
+     
+    <!-- can't include xpath patterns in regular tokenpatterns yet: 
+    <pattern id="xp" type="xpath"> //*[self::img or self::embed or self::video or self::object]/@src </pattern>	
+    <value> <pattern cover="0.05"  p="0.5"> <pattern ref="xp"/> </pattern> </value>
+	-->
+	
+	<value>
+	<!--  <pattern id="xp1" type="xpath" cover="0.05" p="0.5"> //*[self::img or self::embed or self::video or self::object]/@src </pattern> -->
+	  <pattern id="xp1" type="xpath" p="0.7" log="0">
+	    //*[local-name()='img' or local-name()='embed' or local-name()='video' or local-name()='object']
+	  </pattern>
+	  
+	  <!-- lowercase (or true case) tag names result from XHTML pages, but HTML pages always yield uppercase elements in the Neko implementation -->
+      <pattern id="xp2" type="xpath" p="0.7" log="0">
+        //*[local-name()='IMG' or local-name()='EMBED' or local-name()='VIDEO' or local-name()='OBJECT']
+      </pattern>
+	
+      <pattern id="ifr1" type="xpath" p="0.7" log="0">
+        //*[local-name()='iframe']
+      </pattern>
+      <pattern id="ifr2" type="xpath" p="0.7" log="0">
+        //*[local-name()='IFRAME']
+      </pattern>
+    
+      <pattern id="fig1" type="xpath" p="0.9" log="0">
+        //*[local-name()='figure']
+      </pattern>
+      <pattern id="fig2" type="xpath" p="0.9" log="0">
+        //*[local-name()='FIGURE']
+      </pattern>
+
+      <pattern id="videoPlayer" type="xpath" p="0.65" log="0">
+      	//*[(local-name()='div' or local-name()='DIV') and (contains(@class,'video') or contains(@class,'Video') or contains(@class,'VIDEO') or contains(@id,'video') or contains(@id,'Video') or contains(@id,'VIDEO') or contains(@class,'player') or contains(@class,'Player') or contains(@class,'PLAYER') or contains(@id,'player') or contains(@id,'Player') or contains(@id,'PLAYER'))]/*[1]
+      </pattern>
+      
+      <pattern id="dimFilter" type="script" cover="1" p="-1">
+    	!isSmallImage($)
+  	  </pattern>
+
+      <pattern id="auxImgFilter" type="script" cover="1" p="-1">
+    	!isAuxImage($)
+  	  </pattern>
+      
+      <pattern id="occFilter" type="script" cover="1" p="-1">
+    	occurrenceCount($) &lt;= 1
+  	  </pattern>
+      
+      <!-- 
+      <pattern type="pattern" p="0.9" log="0">
+        ($videourl | $podcasturl | $pictureurl)
+      </pattern>
+	  -->
+	  <!-- 
+	  <pattern id="xpt" type="xpath" cover="0.05" p="0.5" log="0">
+        //*[local-name()='div']
+      </pattern>
+      
+	  <pattern id="xp2" type="pattern" cover="0.05" p="0.5" log="0">
+        <tag name="^img"/> <tok/>
+      </pattern>
+       -->
+       
+	</value>
+	
+  </attribute>
+
+</class>
+
+</model>
