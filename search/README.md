@@ -1,4 +1,4 @@
-# IRAPI search demo [![LinkedTV project](http://www.linkedtv.eu/wordpress/wp-content/themes/edegree/images/slidespot.jpg)](http://www.linkedtv.eu)
+# IRAPI search demo
 
 ## Purpose
 IRAPI search is a demo web appliaction based on Jersey framework, which handles searching over crawled media data in SOLR indexes. It provides only one endpoint and returns results in JSON format.
@@ -25,5 +25,5 @@ QUERY: http://localhost:8080/search/media-server/?q="sonne"&media_type=image
 
 ## License
 
-[Apache 2.0](https://github.com/KIZI/IRAPI/wiki/IRAPI-search)
+[Apache 2.0](https://github.com/KIZI/IRAPI/blob/master/search/LICENCE.TXT)
 
