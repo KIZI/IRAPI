@@ -1,4 +1,4 @@
-[![LinkedTV project](https://raw.githubusercontent.com/KIZI/IRAPI/master/wikipictures/linkedtvlogo.png)]
+![LinkedTV project](https://raw.githubusercontent.com/KIZI/IRAPI/master/wikipictures/linkedtvlogo.png)
 # IRAPI - media search engine
 
 IRAPI is a repository that holds all parts of builded MEDIA SEARCH ENGINE for the LinkedTV project.
@@ -15,4 +15,4 @@ IRAPI is a repository that holds all parts of builded MEDIA SEARCH ENGINE for th
 
 > **Note:** The project is customized for LinkedTV purposes, rather it is assumed that it will be used for inspiration.
 
-More information about usage and instalations to individual application on related [[wiki pages|https://github.com/KIZI/IRAPI/wiki]] or in folders README.
+More information about usage and instalations to individual application on related [wiki pages](https://github.com/KIZI/IRAPI/wiki) or in folders README.

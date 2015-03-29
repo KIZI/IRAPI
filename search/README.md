@@ -8,7 +8,7 @@ IRAPI search is a demo web appliaction based on Jersey framework, which handles 
 ## Example usage
 QUERY: http://localhost:8080/search/media-server/?q="sonne"&media_type=image
 
-[![example IRAPI result](todo)]
+![example IRAPI result](https://raw.githubusercontent.com/KIZI/IRAPI/master/wikipictures/search_json_output.png)
 
 ## Installation
 ### Prerequisites:
@@ -16,7 +16,7 @@ QUERY: http://localhost:8080/search/media-server/?q="sonne"&media_type=image
 * Maven 3.*
 
 1. download/clone the project
-2. prepare indexes [[example SOLR index configurations|https://github.com/KIZI/IRAPI/tree/master/solr-example-conf/cores]]
+2. prepare indexes [example SOLR index configurations](https://github.com/KIZI/IRAPI/tree/master/solr-example-conf/cores)
 3. in class SolrIndexPool.java are hardcoded indexes, change the urls or change the class according your needs
 4. do the standart web application build and deploy (mvn install, deploy .war file on server)
 
