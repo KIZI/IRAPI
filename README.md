@@ -1,7 +1,8 @@
-# IRAPI - media search engine [![LinkedTV project](https://raw.githubusercontent.com/KIZI/IRAPI/master/wikipictures/linkedtvlogo.png)
+[![LinkedTV project](https://raw.githubusercontent.com/KIZI/IRAPI/master/wikipictures/linkedtvlogo.png)]
+# IRAPI - media search engine
 
 
-IRAPI is a repository that holds all parts of builded media search engine for the LinkedTV project.
+IRAPI is a repository that holds all parts of builded MEDIA SEARCH ENGINE for the LinkedTV project.
 
 ## Folder description
 
@@ -13,9 +14,6 @@ IRAPI is a repository that holds all parts of builded media search engine for th
 
 * "focusedcrawler, focusedcrawler client" : special appliaction for focused video extracting
 
-* "search"            : contains web application, which provides an endpoint for searching over indexed media data
-
-
 > **Note:** The project is customized for LinkedTV purposes, rather it is assumed that it will be used for inspiration.
 
-More information about usage and instalations to individual application on related (wiki pages)[https://github.com/KIZI/IRAPI/wiki] or in folders README.
+More information about usage and instalations to individual application on related [[wiki pages|https://github.com/KIZI/IRAPI/wiki]] or in folders README.
