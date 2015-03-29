@@ -1,3 +1,19 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.nutch.parse.media;
 
 import java.util.ArrayList;
@@ -7,6 +23,10 @@ import java.util.regex.Pattern;
 
 import org.apache.nutch.media.model.Media;
 
+/**
+ * Usefull static methods for extracting.
+ *
+ */
 public class Extractor {
 
 	public static final String VIDEO_PATTERN = "(.*)(video|film|movie|youtube|mp4)(.*)";
@@ -23,7 +43,7 @@ public class Extractor {
 	 * @param mediaUrl
 	 * @return
 	 */
-	protected static boolean isValidAudioVideoUrl(final String mediaUrl) {
+	protected static final boolean isValidAudioVideoUrl(final String mediaUrl) {
 		if (mediaUrl == null) return false;
 		return mediaUrl.toLowerCase().matches(AUDIO_VIDEO_URL_PATTERN);
 	}
@@ -34,7 +54,7 @@ public class Extractor {
 	 * @param mediaUrl
 	 * @return
 	 */
-	public static String extractFormat(final String mediaUrl) {
+	public static final String extractFormat(final String mediaUrl) {
 		return getMachOfPattern(FORMAT_PATTERN, mediaUrl);
 	}
 
@@ -47,7 +67,7 @@ public class Extractor {
 	 * @param string
 	 * @return
 	 */
-	public static String getMachOfPattern(final Pattern pattern, final String string) {
+	public static final String getMachOfPattern(final Pattern pattern, final String string) {
 		Matcher matcher = pattern.matcher(string);
 		while (matcher.find()) {
 			if (matcher.group(1) != null) {
@@ -57,7 +77,7 @@ public class Extractor {
 		return null;
 	}
 
-	public static List<String> getAllMachOfPattern(final Pattern pattern, final String string) {
+	public static final List<String> getAllMachOfPattern(final Pattern pattern, final String string) {
 		List<String> s = new ArrayList<>();
 		Matcher matcher = pattern.matcher(string);
 		while (matcher.find()) {
@@ -77,7 +97,7 @@ public class Extractor {
 	 * @param hrefUrl
 	 * @return type of media or audio_or_video if not known
 	 */
-	public static String extractType(final String mimeType, String hrefUrl) {
+	public static final String extractType(final String mimeType, String hrefUrl) {
 		if (mimeType != null && mimeType.toLowerCase().matches(VIDEO_PATTERN)) {
 			return Media.TYPE_VIDEO;
 		}
@@ -109,12 +129,12 @@ public class Extractor {
 	}
 
 	/**
-	 * Clean all with decoder
+	 * Clean all with decoder - todo
 	 *
 	 * @param url2
 	 * @return
 	 */
-	protected static String cleanPath(final String url) {
+	protected static final String cleanPath(final String url) {
 		String url2 = url;
 		url2 = url2.replaceAll("%2F", "/");
 		url2 = url2.replaceAll("%3A", ":");

@@ -1,3 +1,19 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.nutch.parse.media.jsoup;
 
 import org.apache.nutch.media.model.Media;
@@ -6,6 +22,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+/**
+ * Class <code>AbstractDomExtractorJsoup</code> implements
+ *
+ */
 public abstract class AbstractDomExtractorJsoup extends Extractor implements DOMExtractorJsoup {
 
 	/*-
@@ -58,7 +78,8 @@ public abstract class AbstractDomExtractorJsoup extends Extractor implements DOM
 		}
 	}
 
-	public static String extractHeadlines(final Document doc) {
+	// extracts
+	public static final String extractHeadlines(final Document doc) {
 		Elements hs = doc.select("h1");
 		hs.addAll(doc.select("h2"));
 		hs.addAll(doc.select("h3"));
@@ -67,9 +88,15 @@ public abstract class AbstractDomExtractorJsoup extends Extractor implements DOM
 		return des;
 	}
 
-	// there should be only one element with this name, get its content
-	protected static final String getTextFromOneTag(final Element asset, final String string) {
-		Elements select = asset.select(string);
+	/**
+	 * If there should be only one element with this name, get its content.
+	 *
+	 * @param element
+	 * @param tagName
+	 * @return
+	 */
+	protected static final String getTextFromOneTag(final Element element, final String tagName) {
+		Elements select = element.select(tagName);
 		if (select == null || select.isEmpty()) {
 			return null;
 		}
