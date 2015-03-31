@@ -12,13 +12,17 @@ It purpose is to extract media informations (url,title,description,width,...) fr
 Use of this plugin includes modification of Nutch source code.
 
 1. copy all java files in folder *"org/apache/nutch/media/model/"* under package *$NUTCH_HOME/src/java/org/apache/nutch/media*
-```     cp media $NUTCH_HOME/src/java/org/apache/nutch/media
+
 ```
+cp media $NUTCH_HOME/src/java/org/apache/nutch/media
+
+```
+
 2. modifiy *org.apache.nutch.indexer.NutchDocument* -> same as in folder [modified_NutchDocument](https://github.com/KIZI/IRAPI/tree/master/nutch-plugin/modified_NutchDocument).
 
 In fact the modification is only about adding this code:
 
-```java
+```Java
         private List<Media> media;
 
 	public void addMedia(List<Media> media) {
