@@ -12,7 +12,7 @@ IRAPI search is a demo web appliaction based on Jersey framework, which handles 
 
 1. download/clone the project
 2. prepare indexes [example SOLR index configurations](https://github.com/KIZI/IRAPI/tree/master/solr-example-conf/cores)
-3. in class *SolrIndexPool* are hardcoded indexes, change the urls or change the class according your needs
+3. in class [SolrIndexPool](https://github.com/KIZI/IRAPI/blob/master/search/src/main/java/eu/linkedtv/irapi/search/solr/SolrIndexPool.java) are hardcoded indexes, change the urls or change the class according your needs
 4. do the standart web application build and deploy (mvn install, deploy .war file on server)
 
 ## Wiki
