@@ -16,7 +16,7 @@ IRAPI search is a demo web appliaction based on Jersey framework, which handles 
 4. do the standart web application build and deploy (mvn install, deploy .war file on server)
 
 ## Wiki
-[IRAPI search wiki](https://github.com/KIZI/IRAPI/wiki/IRAPI-search) 
+[IRAPI search wiki](https://github.com/KIZI/IRAPI/wiki/Searching---How-the-search-over-indexed-data-is-done) 
 
 ## License
 
