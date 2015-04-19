@@ -1,0 +1,107 @@
+package cz.janbouchner.ir.dashboard.managed;
+
+import javax.annotation.PostConstruct;
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import javax.faces.bean.ManagedBean;
+ 
+import org.primefaces.model.chart.Axis;
+import org.primefaces.model.chart.AxisType;
+import org.primefaces.model.chart.BarChartModel;
+import org.primefaces.model.chart.HorizontalBarChartModel;
+import org.primefaces.model.chart.ChartSeries;
+
+import cz.janbouchner.ir.dashboard.domain.Stats;
+import cz.janbouchner.ir.dashboard.domain.StatsInTime;
+import cz.janbouchner.ir.dashboard.task.StatsManager;
+ 
+@ManagedBean
+public class ChartView implements Serializable {
+ 
+    private BarChartModel barModel;
+    private StatsManager statsManager;
+ 
+    @PostConstruct
+    public void init() {
+    	statsManager = new StatsManager();
+        createBarModel();
+    }
+ 
+    public BarChartModel getBarModel() {
+        return barModel;
+    }
+ 
+    private BarChartModel initBarModel() {
+        BarChartModel model = new BarChartModel();
+        
+        try {
+			List<StatsInTime> statsInTime = statsManager.getStatsInTimeList();
+			int statsInTimeSize = statsInTime.size();
+			
+			ChartSeries webpage = new ChartSeries();
+			webpage.setLabel("webpage");
+			ChartSeries image = new ChartSeries();
+			image.setLabel("image");
+			ChartSeries audio = new ChartSeries();
+			audio.setLabel("audio");
+			ChartSeries video = new ChartSeries();
+			video.setLabel("video");
+			
+			if (statsInTimeSize > 10) {
+				
+				for (int i = (statsInTimeSize - 10); i < statsInTimeSize; i++) {
+					webpage.set(statsInTime.get(i).getDate(), statsInTime.get(i).getWebpage());
+					image.set(statsInTime.get(i).getDate(), statsInTime.get(i).getImage());
+					audio.set(statsInTime.get(i).getDate(), statsInTime.get(i).getPodcast());
+					video.set(statsInTime.get(i).getDate(), statsInTime.get(i).getVideo());					
+				}
+			} else {
+				//vypiseme jen ty co tam jsou
+				for (StatsInTime s : statsInTime) {
+					webpage.set(s.getDate(), s.getWebpage());
+					image.set(s.getDate(), s.getImage());
+					audio.set(s.getDate(), s.getPodcast());
+					video.set(s.getDate(), s.getVideo());
+				}				
+			}
+	 
+	        model.addSeries(webpage);
+	        model.addSeries(image);
+	        model.addSeries(video);
+	        model.addSeries(audio);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         
+        return model;
+    }
+     
+    private void createBarModel() {
+        barModel = initBarModel();
+         
+        barModel.setTitle("Statistics of crawling - last 10 days");
+        barModel.setLegendPosition("ne");
+        barModel.setMouseoverHighlight(true);
+        barModel.setShowPointLabels(true); 
+        
+        Axis xAxis = barModel.getAxis(AxisType.X);
+        xAxis.setLabel("Time (days)");
+         
+        Axis yAxis = barModel.getAxis(AxisType.Y);
+        yAxis.setLabel("Media type quantity (documents)");
+        yAxis.setMin(0);
+        yAxis.setMax(100000);
+    }
+    
+    private String toDate(Date date) {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");   
+        return dateFormat.format(date).toString();
+}    
+ 
+}

@@ -1,0 +1,393 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cz.janbouchner.ir.dashboard.managed;
+
+import static cz.janbouchner.ir.dashboard.managed.AbstractBean.CONF_PATH;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+
+/**
+ *
+ * @author jan
+ */
+@ManagedBean(name = "whitelist")
+@SessionScoped
+public class WhitelistBean extends AbstractBean implements Serializable {
+
+    private int number;
+    private String dom;
+    private String whitelistName;
+    private List<String> domains;
+    private String error;
+    private String success;
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    public String addUrl() {
+        error = null;
+        success = null;
+        if ((dom == null) || ("".equals(dom))) {
+            error = "Please insert url you want to add.";
+            return "whitelist?faces-redirect=true";
+        }
+        try {
+            if (validUrl(dom)) {
+                if (this.number == 1) {
+                    writeUrl(dom, 1);
+                    writeWhitelistUrl(dom, 1);
+                } else {
+                    writeUrl(dom, 2);
+                    writeWhitelistUrl(dom, 2);
+                }
+                writeRegexUrl(dom);
+                writeWhitelistUrl(dom, 1);
+                success = "Your url was added successfully!";
+            } else {
+                error = "Error! Maybe your url is in bad format (http://host.domain)";
+            }
+        } catch (IOException ex) {
+            System.out.println("Error" + ex.toString());
+            error = "Error! Maybe your url is in bad format (http://host.domain)";
+        }
+        this.dom = null;
+        if (this.number == 1) {
+            domains = getRbbWhitelistedDomainsFromFile();
+        } else {
+            domains = getSavWhitelistedDomainsFromFile();
+        }
+        return "whitelist?faces-redirect=true";
+    }
+
+    public String loadWhitelist() {
+        error = null;
+        success = null;
+        FacesContext context = FacesContext.getCurrentInstance();
+        Map<String, String> paramMap = context.getExternalContext().getRequestParameterMap();
+        String whitelistId = paramMap.get("j_idt33:selectMenu_input");
+        this.number = Integer.valueOf(whitelistId);
+        //System.out.println("KLIC: " + whitelistId);
+        if ((whitelistId == null) || ("".equals(whitelistId))) {
+            System.out.println("Key not selected");
+            return "index";
+        } else {
+            // vybirani a zobrazovani whitelistu
+            if (whitelistId.equals("1")) {
+                //rbb
+                this.whitelistName = "RBB";
+                domains = getRbbWhitelistedDomainsFromFile();
+            } else if (whitelistId.equals("2")) {
+                //sav
+                this.whitelistName = "S&V";
+                domains = getSavWhitelistedDomainsFromFile();
+            }
+        }
+        return "whitelist?faces-redirect=true";
+    }
+
+    public String getWhitelistName() {
+        return whitelistName;
+    }
+
+    public void setWhitelistName(String whitelistName) {
+        this.whitelistName = whitelistName;
+    }
+
+    public List<String> getDomains() {
+        return domains;
+    }
+
+    public void setDomains(List<String> domains) {
+        this.domains = domains;
+    }
+
+    public String getDom() {
+        return dom;
+    }
+
+    public void setDom(String dom) {
+        this.dom = dom;
+    }
+
+    private void writeUrl(String domain, int whitelistIndicator) throws IOException {
+        BufferedWriter out = null;
+        String whitelist;
+        if (whitelistIndicator == 1) {
+            whitelist = "rbb_seed";
+        } else {
+            whitelist = "sav_seed";
+        }
+        try {
+            FileWriter fstream = new FileWriter(CONF_PATH + "/nutch/urls/" + whitelist + ".txt", true); //true tells to append data.
+            out = new BufferedWriter(fstream);
+            out.write("\n" + domain + "\n");
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    public String deleteUrl() throws IOException {
+        error = null;
+        success = null;
+        Map params = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+        String url = (String) params.get("url");
+        safelyDeleteUrl(url);
+        this.dom = null;
+        if (this.number == 1) {
+            domains = getRbbWhitelistedDomainsFromFile();
+        } else {
+            domains = getSavWhitelistedDomainsFromFile();
+        }
+        success = "Url " + url + " successfully deleted.";
+        return "whitelist?faces-redirect=true";
+    }
+
+    private void writeRegexUrl(String domain) throws IOException {
+        BufferedWriter out = null;
+        try {
+            URL myUrl = new URL(domain);
+            String host = myUrl.getHost();
+
+            if (host.startsWith("www.")) {
+                host = host.replaceFirst("www.", "");
+            }
+
+            FileWriter fstream = new FileWriter(CONF_PATH + "/nutch/conf/regex-urlfilter.txt", true); //true tells to append data.
+            out = new BufferedWriter(fstream);
+            out.write("\n" + "+^http://([a-z0-9]*\\.)*" + host + "\n");
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    private void safelyDeleteUrl(String urlToDelete) throws IOException {
+        BufferedReader brWhitelist = null;
+        BufferedReader brRegex = null;
+        BufferedReader brSeed = null;
+        BufferedWriter outWhitelist = null;
+        BufferedWriter outRegex = null;
+        BufferedWriter outSeed = null;
+        List<String> seed = new ArrayList<>();
+        List<String> regexp = new ArrayList<>();
+        List<String> whitelist = new ArrayList<>();
+        FileWriter stream = null;
+        String whitelistRecognizer = "";
+
+        try {
+            String sCurrentLineWhitelist;
+            String sCurrentLineRegex;
+            String sCurrentLineSeed;
+
+            if (this.number == 1) {
+                brSeed = new BufferedReader(new FileReader(CONF_PATH + "/nutch/urls/rbb_seed.txt"));
+                while ((sCurrentLineSeed = brSeed.readLine()) != null) {
+                    if (!urlToDelete.equals(sCurrentLineSeed)) {
+                        seed.add(sCurrentLineSeed);
+                    }
+                }
+                stream = new FileWriter(CONF_PATH + "/nutch/urls/rbb_seed.txt");
+                whitelistRecognizer = "R_";
+            } else {
+                brSeed = new BufferedReader(new FileReader(CONF_PATH + "/nutch/conf/sav_seed.txt"));
+                while ((sCurrentLineSeed = brSeed.readLine()) != null) {
+                    if (!urlToDelete.equals(sCurrentLineSeed)) {
+                        seed.add(sCurrentLineSeed);
+                    }
+                }
+                stream = new FileWriter(CONF_PATH + "/nutch/urls/sav_seed.txt");
+                whitelistRecognizer = "S_";
+            }
+
+            brWhitelist = new BufferedReader(new FileReader(CONF_PATH + "/nutch/conf/whitelist-urlfilter.txt"));
+            brRegex = new BufferedReader(new FileReader(CONF_PATH + "/nutch/conf/regex-urlfilter.txt"));
+
+            URL myUrl = new URL(urlToDelete);
+            String host = myUrl.getHost();
+
+            while ((sCurrentLineWhitelist = brWhitelist.readLine()) != null) {
+                if (!sCurrentLineWhitelist.startsWith(whitelistRecognizer + host)) {
+                    whitelist.add(sCurrentLineWhitelist);
+                }
+            }
+
+            while ((sCurrentLineRegex = brRegex.readLine()) != null) {
+                if (!sCurrentLineRegex.startsWith("+^http://([a-z0-9]*\\.)*" + host)) {
+                    regexp.add(sCurrentLineRegex);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (brWhitelist != null) {
+                    brWhitelist.close();
+                }
+                if (brRegex != null) {
+                    brRegex.close();
+                }
+                if (brSeed != null) {
+                    brSeed.close();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            FileWriter streamRegexp = new FileWriter(CONF_PATH + "/nutch/conf/regex-urlfilter.txt");
+            FileWriter streamWhitelist = new FileWriter(CONF_PATH + "/nutch/conf/whitelist-urlfilter.txt");
+            outSeed = new BufferedWriter(stream);
+            outRegex = new BufferedWriter(streamRegexp);
+            outWhitelist = new BufferedWriter(streamWhitelist);
+            for (String s : seed) {
+                outSeed.write(s + "\n");
+            }
+            for (String s : regexp) {
+                outRegex.write(s + "\n");
+            }
+            for (String s : whitelist) {
+                outWhitelist.write(s + "\n");
+            }
+            outSeed.close();
+            outRegex.close();
+            outWhitelist.close();
+
+        }
+    }
+
+    private List<String> getRbbWhitelistedDomainsFromFile() {
+        List<String> rbb = new ArrayList<>();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(CONF_PATH + "/nutch/urls/rbb_seed.txt"));
+
+            String sCurrentLine;
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                if (!("".equals(sCurrentLine))) {
+                    rbb.add(sCurrentLine);
+                }                
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+// add elements to al, including duplicates
+        HashSet hs = new HashSet();
+        hs.addAll(rbb);
+        rbb.clear();
+        rbb.addAll(hs);
+
+        Collections.sort(rbb);
+        return rbb;
+    }
+
+    private List<String> getSavWhitelistedDomainsFromFile() {
+        List<String> sav = new ArrayList<>();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(CONF_PATH + "/nutch/urls/sav_seed.txt"));
+
+            String sCurrentLine;
+
+            while ((sCurrentLine = br.readLine()) != null) {
+                if (!("".equals(sCurrentLine))) {
+                    sav.add(sCurrentLine);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+// add elements to al, including duplicates
+        HashSet hs = new HashSet();
+        hs.addAll(sav);
+        sav.clear();
+        sav.addAll(hs);
+
+        Collections.sort(sav);
+        return sav;
+    }
+
+    private void writeWhitelistUrl(String domain, int whitelistIndicator) throws IOException {
+        BufferedWriter out = null;
+        try {
+            URL myUrl = new URL(domain);
+            String host = myUrl.getHost();
+
+            if (host.startsWith("www.")) {
+                host = host.replaceFirst("www.", "");
+            }
+
+            FileWriter fstream = new FileWriter(CONF_PATH + "/nutch/conf/whitelist-urlfilter.txt", true); //true tells to append data.
+            out = new BufferedWriter(fstream);
+            if (whitelistIndicator == 1) {
+                out.write("\n" + "R_" + host + "\n");
+            } else {
+                out.write("\n" + "S_" + host + "\n");
+            }
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public String getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(String success) {
+        this.success = success;
+    }
+
+    private boolean validUrl(String domain) {
+        try {
+            URL myUrl = new URL(domain);
+            String host = myUrl.getHost();
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+}

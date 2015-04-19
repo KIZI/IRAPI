@@ -1,0 +1,82 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cz.janbouchner.ir.dashboard.crate;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ResultCrate {
+	public String server;//with port		
+	public String whitelist;
+	public List<WatchedItem> items;
+	public Map<String, Integer> mediaTypeTotals;
+	private final Date timestamp;
+	private final String serverName;
+
+	public ResultCrate(String server, String whitelist, List<WatchedItem> watchedItems) {
+		this.serverName = generateServerName(server);
+		this.timestamp = new Date();
+		this.server = server;
+		this.whitelist = whitelist;
+		this.items = watchedItems;
+		this.mediaTypeTotals = new HashMap<String, Integer>();
+	}
+
+	private final String generateServerName(String server) {
+		String port = "", host = "";
+		if (server.matches(".*127//.0//.0//.1.*")) {
+			host = "localhost";
+		}
+		if (server.matches(".*ir-dev.*")) {
+			host = "ir-dev";
+		} else {
+			host = "ir";
+		}
+		server.substring(server.length() - 7, server.length() - 1);
+		return host + "_" + port;
+	}
+
+	public String getServer() {
+		return server;
+	}
+
+	public String getWhitelist() {
+		return whitelist;
+	}
+
+	public List<WatchedItem> getWatchedItems() {
+		return items;
+	}
+
+	public void addWatchedItem(WatchedItem item) {
+		items.add(item);
+	}
+
+	public void addTotal(String mediaType, int total) {
+		mediaTypeTotals.put(mediaType, total);
+	}
+
+	@Override
+	public String toString() {
+		String toString = "";
+		toString = server + " - " + whitelist;
+		for (WatchedItem line : items) {
+			toString += line + "/n";
+		}
+		return toString;
+	}
+
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public String getServerPrintableName() {
+		return serverName;
+	}
+
+}
+

@@ -1,0 +1,35 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package cz.janbouchner.ir.dashboard.task;
+
+import cz.janbouchner.ir.dashboard.managed.ChartView;
+
+import java.sql.SQLException;
+import java.util.Date;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+
+/**
+ *
+ * @author jan
+ */
+public class ObtainStatisticTask {
+    
+   //@Scheduled(cron = "*/5 * * * * ?")
+    
+    // Every night at 1 AM
+    @Scheduled(cron = "0 1 0 ? * *")
+    public void getMediaTypeCounts() {
+        System.out.println("Method executed at 1 AM. Current time is :: " + new Date());
+        
+        StatsManager statsManager = new StatsManager();
+        try {
+			statsManager.saveCurrentIndexState();
+		} catch (SQLException e) {
+			System.out.println("CHYBA PRI KOMUNIKACI S DATABAZI");
+			e.printStackTrace();
+		}
+    }  
+}

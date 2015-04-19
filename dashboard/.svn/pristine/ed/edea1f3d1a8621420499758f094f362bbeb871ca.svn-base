@@ -1,0 +1,310 @@
+package cz.janbouchner.ir.dashboard.managed;
+
+import cz.janbouchner.ir.dashboard.domain.Domain;
+import cz.janbouchner.ir.dashboard.httpclient.IrHttpClient;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import org.primefaces.model.DualListModel;
+import org.w3c.dom.Document;
+
+@ManagedBean(name = "pick")
+@ViewScoped
+public class PickListBean extends AbstractBean implements Serializable {
+
+    private DualListModel<String> rbbDomains;
+    private DualListModel<String> savDomains;
+    private DefaultHttpClient httpclient;
+    private SolrServer server;
+    /*
+    private List<Domain> rbbDomainsToTable;
+    private List<Domain> savDomainsToTable;
+    */
+    private List<String> listTarget;
+    private List<Domain> domainsToTable = new ArrayList<Domain>();
+    private List<Domain> filteredDomains;
+
+    /*
+    @PostConstruct
+    public void init() {
+        IrHttpClient httpClient = new IrHttpClient();
+        this.httpclient = httpClient.getHttpClientInstance();
+        this.server = new HttpSolrServer("http://ir.lmcloud.vse.cz/solr/", httpclient);
+        this.listTarget = getDomainsFromFile();        
+        calculateTargets();        
+    }
+    */
+
+    public PickListBean() {
+
+        /*
+        List<String> rbbListSource = getRbbDomainsFromFile();
+        List<String> rbbListTarget = new ArrayList<>();
+
+        //////////////////////////////SAV////////////////////////////////////
+        List<String> savListSource = getSavDomainsFromFile();
+        List<String> savListTarget = new ArrayList<>();
+        */
+        
+        IrHttpClient httpClient = new IrHttpClient();
+        this.httpclient = httpClient.getHttpClientInstance();
+        this.server = new HttpSolrServer("http://ir.lmcloud.vse.cz/solr/", httpclient);
+        this.listTarget = getDomainsFromFile();        
+        //calculateTargets();           
+        
+        /*
+        rbbDomains = new DualListModel<>(rbbListSource, rbbListTarget);
+        savDomains = new DualListModel<>(savListSource, savListTarget);
+        */
+    }
+
+    public DualListModel<String> getRbbDomains() {
+        return rbbDomains;
+    }
+
+    public void setRbbDomains(DualListModel<String> rbbDomains) {
+        this.rbbDomains = rbbDomains;
+    }
+
+    public DualListModel<String> getSavDomains() {
+        return savDomains;
+    }
+
+    public void setSavDomains(DualListModel<String> savDomains) {
+        this.savDomains = savDomains;
+    }
+
+    public List<String> getListTarget() {
+        return listTarget;
+    }
+
+    public void setListTarget(List<String> listTarget) {
+        this.listTarget = listTarget;
+    }        
+
+    public int getContextCount(String domain, String context) throws IOException {
+        System.out.println("QUERIK: domain: " + domain + " context: " + context);
+        
+        String partQuery;
+        if (domain.startsWith("berlin.de")) {            
+            partQuery = "url:\"*www." + domain + "*\"+OR+url:\"*stadtentwicklung." + domain + "*\"+OR+url:\"*stayfriends." + domain + "*\"+OR+url:\"*service." + domain + "*\"+OR+url:\"*hauptstadtkulturfonds." + domain + "*\"+OR+url:\"*sei." + domain + "*\"+OR+url:\"*vergabeplattform." + domain + "*\"+OR+url:\"*be." + domain + "*\"+OR+url:\"*gesetze." + domain + "*\"+OR+url:\"*daten." + domain + "*\"";
+        } else {
+            partQuery = "url:\"*" + domain + "*\"";
+        }        
+        
+        HttpGet request = null;
+        if (context.equals("webpage")) {
+            request = new HttpGet(WEBPAGE_URL + "select?q=" + URLEncoder.encode(partQuery, "UTF-8") + "&rows=0&wt=xml");
+        } else if (context.equals("image")) {
+            request = new HttpGet(IMAGE_URL + "select?q=" + URLEncoder.encode(partQuery, "UTF-8") + "&rows=0&wt=xml");
+        } else if (context.equals("video")) {
+            request = new HttpGet(VIDEO_URL + "select?q=" + URLEncoder.encode(partQuery, "UTF-8") + "&rows=0&wt=xml");
+        } else if (context.equals("podcast")) {
+            request = new HttpGet(AUDIO_URL + "select?q=" + URLEncoder.encode(partQuery, "UTF-8") + "&rows=0&wt=xml");
+        }                
+
+        // add request header
+        request.setHeader("User-Agent", USER_AGENT);
+        request.setHeader("Accept",
+                "application/xml;q=0.9,*/*;q=0.8");
+        request.setHeader("Accept-Language", "en-US,en;q=0.5");    
+                        
+        return safeLongToInt(Long.valueOf(parseNumberResponse(request)));        
+    }
+    
+private int safeLongToInt(long l) {
+    if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+        throw new IllegalArgumentException
+            (l + " cannot be cast to int without changing its value.");
+    }
+    return (int) l;
+}    
+
+/*
+    public void calculateRbbTargets() {
+        List<Domain> dom = new ArrayList<>();
+        for (String d : rbbDomains.getTarget()) {
+            //calculate domain            
+            try {
+                Domain domain = new Domain();
+                if (d.endsWith("/")) {
+                    d = d.substring(0, d.length()-1);
+                }                
+                domain.setUrl("http://" + d);
+                int countWebpage = getContextCount(d, "webpage");
+                domain.setWebpage(countWebpage);
+                int countImage = getContextCount(d, "image");
+                domain.setImage(countImage);
+                int countVideo = getContextCount(d, "video");
+                domain.setVideo(countVideo);
+                int countPodcast = getContextCount(d, "podcast");
+                domain.setPodcast(countPodcast);
+                domain.setTotal(domain.getImage() + domain.getPodcast() + domain.getVideo() + domain.getWebpage());
+                dom.add(domain);
+            } catch (Exception ex) {
+                System.out.println("EXCEPTION: " + ex);
+            }
+        }
+        for (Domain domfsd : dom) {
+            System.out.println("JOK: " + domfsd.getUrl() + domfsd.getImage() + domfsd.getVideo());
+        }
+        rbbDomainsToTable = dom;
+    }
+    
+    public void calculateSavTargets() {
+        List<Domain> dom = new ArrayList<>();
+        for (String d : savDomains.getTarget()) {
+            //calculate domain            
+            try {
+                Domain domain = new Domain();
+                if (d.endsWith("/")) {
+                    d = d.substring(0, d.length()-1);
+                }   
+                domain.setUrl("http://" + d);
+                int countWebpage = getContextCount(d, "webpage");
+                domain.setWebpage(countWebpage);
+                int countImage = getContextCount(d, "image");
+                domain.setImage(countImage);
+                int countVideo = getContextCount(d, "video");
+                domain.setVideo(countVideo);
+                int countPodcast = getContextCount(d, "podcast");
+                domain.setPodcast(countPodcast);
+                domain.setTotal(domain.getImage() + domain.getPodcast() + domain.getVideo() + domain.getWebpage());
+                dom.add(domain);
+            } catch (Exception ex) {
+                System.out.println("EXCEPTION: " + ex);
+            }
+        }
+        savDomainsToTable = dom;
+    }    
+    */
+
+    private List<Domain> calculateTargets() {
+        List<Domain> dom = new ArrayList<>();
+        for (String d : listTarget) {
+            //calculate domain            
+            try {
+                Domain domain = new Domain();
+                
+                if (d.startsWith("R_")) {
+                    domain.setWhitelist("rbb");
+                    d = d.replaceAll("R_", "");
+                } else if (d.startsWith("S_")) {
+                    domain.setWhitelist("sav");
+                    d = d.replaceAll("S_", "");                
+                }
+                
+                if (d.endsWith("/")) {
+                    d = d.substring(0, d.length()-1);
+                }   
+                domain.setUrl("http://" + d);
+                int countWebpage = getContextCount(d, "webpage");
+                domain.setWebpage(countWebpage);
+                int countImage = getContextCount(d, "image");
+                domain.setImage(countImage);
+                int countVideo = getContextCount(d, "video");
+                domain.setVideo(countVideo);
+                int countPodcast = getContextCount(d, "podcast");
+                domain.setPodcast(countPodcast);
+                domain.setTotal(domain.getImage() + domain.getPodcast() + domain.getVideo() + domain.getWebpage());
+                dom.add(domain);
+            } catch (Exception ex) {
+                System.out.println("EXCEPTION: " + ex);
+            }
+        }
+        return dom;
+    }
+
+    /*
+    public List<Domain> getRbbDomainsToTable() {
+    return rbbDomainsToTable;
+    }
+    public void setRbbDomainsToTable(List<Domain> rbbDomainsToTable) {
+    this.rbbDomainsToTable = rbbDomainsToTable;
+    }
+    public List<Domain> getSavDomainsToTable() {
+    return savDomainsToTable;
+    }
+    public void setSavDomainsToTable(List<Domain> savDomainsToTable) {
+    this.savDomainsToTable = savDomainsToTable;
+    }
+     */
+    public List<Domain> getDomainsToTable() {
+        if (domainsToTable.isEmpty()) {
+            this.domainsToTable = calculateTargets();
+        }
+        return domainsToTable;
+    }
+
+    public void setDomainsToTable(List<Domain> domainsToTable) {
+        this.domainsToTable = domainsToTable;
+    }
+
+    public List<Domain> getFilteredDomains() {
+        return filteredDomains;
+    }
+
+    public void setFilteredDomains(List<Domain> filteredDomains) {
+        this.filteredDomains = filteredDomains;
+    }
+    
+    private String parseNumberResponse(HttpGet request) {
+        try {
+            HttpResponse response = httpclient.execute(request);
+
+            System.out.println("Response Code : "
+                    + response.getStatusLine().getStatusCode());
+
+            BufferedReader rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuffer result = new StringBuffer();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+
+            System.out.println(result.toString());
+
+            if (response.getStatusLine().getStatusCode() == 200) {
+                try {
+                    Document xmlResponse = loadXml(result.toString());
+                    XPathFactory xPathfactory = XPathFactory.newInstance();
+                    XPath xpath = xPathfactory.newXPath();
+                    XPathExpression expr = xpath.compile("//result/@numFound");
+                    String nl = expr.evaluate(xmlResponse);
+                    return nl;
+                } catch (Exception ex) {
+                    Logger.getLogger(IndexInfoBean.class.getName()).log(Level.SEVERE, null, ex);
+                    return null;
+                }
+            } else {
+                return null;
+            }
+
+        } catch (IOException ex) {
+            System.out.println("Exceptioon: " + ex);
+        }
+        return null;
+    }    
+}
