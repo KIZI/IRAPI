@@ -5,6 +5,8 @@ IRAPI is a repository that holds all parts of builded MEDIA SEARCH ENGINE for th
 
 ## Folder description
 
+* **"dashboard"**     : contains web application, which displays detailed statistics for Apache Solr index and tools for provide operation with data.
+
 * **"nutch-plugin"**     : contains plugin for Apache Nutch 2, which purpose is to extract media from webpages - important for crawling task
 
 * **"solr-example-conf/cores"** : contains example configuration for Apache Solr index, which corresponds to crawled data from media-extractor (nutch-plugin)
