@@ -37,10 +37,10 @@ In fact the modification is only about adding this code:
 These modifications are necessary for indexing part of crawling proces.
 
 ### plugin configuration
-See [[media extractor plugin instalation and configuration|https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin-for-Apache-Nutch-2---instalation-and-configuration]].
+See [media extractor plugin instalation and configuration](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin---installation&usage).
 
-## Wiki
-[[Media extractor wiki pages|https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin]]
+## Wiki - principle and class documentation
+[Media extractor wiki pages](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin,-principle-and-class-documentation)
 
 ## License
 
