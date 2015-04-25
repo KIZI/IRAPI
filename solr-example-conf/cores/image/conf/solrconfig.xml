@@ -83,7 +83,7 @@
        replication is in use, this should match the replication
        configuration.
     -->
-  <dataDir>${solr.data.dir:/PATH_TO_YOUR_INDEX/solr-480/solr/cores/CORE_NAME/data}</dataDir>
+  <dataDir>${solr.data.dir:image/data}</dataDir>
 
 
   <!-- The DirectoryFactory to use for indexes.

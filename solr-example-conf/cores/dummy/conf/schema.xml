@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="dummy" version="1.0">
+
+<fields>
+
+	<dynamicField name="*" type="string" stored="true"  indexed="false"/>
+	<field name="_version_" type="long" indexed="true" stored="true" multiValued="false"/>
+	<field name="id" type="string" stored="true" indexed="true" multiValued="false"/>       
+</fields>
+
+<uniqueKey>id</uniqueKey>
+<defaultSearchField>id</defaultSearchField>
+<solrQueryParser defaultOperator="OR"/>
+
+<types>   
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="long" class="solr.TrieLongField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
+ </types>
+
+</schema>
