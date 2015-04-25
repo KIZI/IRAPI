@@ -268,7 +268,7 @@ public class TestMediaExtractorParser {
 		page.setContent(ByteBuffer.wrap(contentBytes));
 		page.setContentType(new Utf8("text/html"));
 		page.setFetchTime(System.currentTimeMillis());
-
+		page.setMetadata(new HashMap<CharSequence, ByteBuffer>());
 		ParseUtil parser = new ParseUtil(conf);
 		parser.parse(urlString, page);
 		return page;
