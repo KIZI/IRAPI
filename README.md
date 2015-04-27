@@ -16,7 +16,7 @@ IRAPI is a repository that holds all parts of builded MEDIA SEARCH ENGINE, which
 * **"search"**            : contains web application providing  endpoint for searching over indexed media data
 	* wiki page:[wiki/Searching---How-the-search-over-indexed-data-is-done](https://github.com/KIZI/IRAPI/wiki/Searching---How-the-search-over-indexed-data-is-done) 
 
-* **"focusedcrawler, focusedcrawler client"** : appliaction for focused on-demand video crawling (wraps on-line search of several news websites) Within IRAPI, the focused crawl is triggered by query issues against the search web application.
+* **"focusedcrawler, focusedcrawler client"** : application for focused on-demand video crawling (wraps on-line search of several news websites) Within IRAPI, the focused crawl is triggered by query issues against the search web application.
 
 > **Note:** While the project is customized for LinkedTV purposes,  it can serve as inpiration or template for other related uses.
 
