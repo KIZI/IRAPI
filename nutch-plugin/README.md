@@ -39,8 +39,8 @@ These modifications are necessary for indexing part of crawling proces.
 ### plugin configuration
 See [media extractor plugin instalation and configuration](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin---installation&usage).
 
-## Wiki - principle and class documentation
-[Media extractor wiki pages](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin,-principle-and-class-documentation)
+## Wiki - principle, developer perspective
+[Media extractor wiki pages](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin----developer-perspective)
 
 ## License
 
