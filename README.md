@@ -9,7 +9,7 @@ IRAPI is a repository that holds all parts of builded MEDIA SEARCH ENGINE, which
 
 * **"nutch-plugin"**     : contains plugin for Apache Nutch 2. Its purpose is to extract media from webpages 
 	* instalation and usage : [/wiki/Media-extractor-plugin---installation&usage](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin---installation&usage)
-	*  class documentation : [wiki/Media-extractor-plugin,-principle-and-class-documentation](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin,-principle-and-class-documentation)
+	*  principle, developers perspective : [wiki/Media-extractor-plugin----developer-perspectiven](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin----developer-perspective)
 
 * **"solr-example-conf/cores"** : example configuration for Apache Solr index compatible with data structure required by the media-extractor (nutch-plugin)
 
