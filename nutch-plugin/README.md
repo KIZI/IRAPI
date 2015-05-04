@@ -9,7 +9,7 @@ It purpose is to extract media information (url,title,description,width,...) fro
 * JDK 1.7
 * ant
 
-Use of this plugin includes modification of Nutch source code.
+Use of this plugin requires modification of the Nutch source code.
 
 1. copy all java files in folder *"org/apache/nutch/media/model/"* under package *$NUTCH_HOME/src/java/org/apache/nutch/media*
 
@@ -34,7 +34,7 @@ In fact the modification is only about adding this code:
 	}
 ```
 
-These modifications are necessary for indexing part of crawling proces.
+These modifications are necessary for the indexing part of crawling proces.
 
 ### plugin configuration
 See [media extractor plugin instalation and configuration](https://github.com/KIZI/IRAPI/wiki/Media-extractor-plugin---installation&usage).
