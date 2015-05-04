@@ -1,8 +1,8 @@
 # Media-extractor plugin for Apache Nutch 2 README
 
-Media-extractor plugin is plugin for Apache Nutch 2.3, created within the project [LinkedTV](http://linkedtv.eu/) at [The University of Economics, Prague (VŠE)](http://www.vse.cz/english/).
+Media-extractor plugin is plugin for Apache Nutch 2.3, created within the project [LinkedTV](http://linkedtv.eu/) at the [University of Economics, Prague (VŠE)](http://www.vse.cz/english/).
 
-It purpose is to extract media information (url,title,description,width,...) from webpage preserving the links between the page and the media (M:1 binding). The following media types are recognized: image, video (multiple formats), audio.
+Its purpose is to extract media information (url,title,description,width,...) from webpage preserving the links between the page and the media (M:1 binding). The following media types are recognized: image, video (multiple formats), audio.
 
 ## Installation
 ### Prerequisites:
