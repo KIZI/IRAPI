@@ -1,5 +1,5 @@
 # Dashboard
-A dashboard is a web application which helps to monitor results of the crawling and indexing processes. The main purpose of the dashboard is to offer detailed and up-to-date statistics for the data stored in the index.
+A dashboard is a web application which helps to monitor results of the crawling and indexing processes for [nutch-plugin](https://github.com/KIZI/IRAPI/tree/master/nutch-plugin). The main purpose of the dashboard is to offer detailed and up-to-date statistics for the data stored in the index.
 
 It provides an overview of how many media objects have been identiﬁed in the crawled web pages. The dashboard distinguishes between the types of documents stored (web page, image, video, podcast). Data which are shown in the dashboard are retrieved directly from the index using appropriate queries, therefore the dashboard displays “live” index status.
 
@@ -32,7 +32,11 @@ The dashboard allows to manage both whitelists. The user ﬁrst picks up the whi
 > Created within the project [LinkedTV](http://linkedtv.eu/) at [The University of Economics, Prague (VŠE)](http://www.vse.cz/english/).
 
 # Installation
-1. Clone project
-2. Update settings in properties file (application.properties)
-3. Create database with prepared SQL script (dashboard_backup.sql or dashboard_backup_insert.sql with example data)
-4. Build with Maven and run as a web application
+1. [Install nutch-plugin](https://github.com/KIZI/IRAPI/tree/master/nutch-plugin#installation)
+2. Create new Solr cores by [the example](https://github.com/KIZI/IRAPI/tree/master/solr-example-conf).
+3. Clone project
+4. Update settings in [properties file](https://github.com/KIZI/IRAPI/blob/master/dashboard/src/main/resources/application.properties)
+5. Modify paths in source codes to be identical with your Nutch installation (TODO: fix it to properties) and with path in script to apply URL changes (see below).
+6. Modify paths in [script](https://github.com/KIZI/IRAPI/tree/master/dashboard/scripts) java_exec.sh.  
+7. Create database with prepared [SQL scripts](https://github.com/KIZI/IRAPI/tree/master/dashboard/sql) (dashboard_backup.sql or dashboard_backup_insert.sql with example data)
+8. Build with Maven and run as a web application
