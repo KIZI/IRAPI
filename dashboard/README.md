@@ -1,4 +1,7 @@
 # Dashboard
+
+> Created within the project [LinkedTV](http://linkedtv.eu/) at [The University of Economics, Prague (VŠE)](http://www.vse.cz/english/).
+
 A dashboard is a web application which helps to monitor results of the crawling and indexing processes for [nutch-plugin](https://github.com/KIZI/IRAPI/tree/master/nutch-plugin). The main purpose of the dashboard is to offer detailed and up-to-date statistics for the data stored in the index (Apache Solr/Lucene).
 
 It provides an overview of how many media objects have been identiﬁed in the crawled web pages. The dashboard distinguishes between the types of documents stored (web page, image, video, podcast). Data which are shown in the dashboard are retrieved directly from the index using appropriate queries, therefore the dashboard displays “live” index status.
@@ -28,8 +31,6 @@ Whitelist administration (adding of URL) is realized by remote modifying conﬁg
 The dashboard allows to manage both whitelists. The user ﬁrst picks up the whitelist, and then there he is presented with option to add new URL.
 
 ![Adding URL to whitelist](https://raw.githubusercontent.com/KIZI/IRAPI/master/wikipictures/dashboard/ltv_dashboard_addurl.png)
-
-> Created within the project [LinkedTV](http://linkedtv.eu/) at [The University of Economics, Prague (VŠE)](http://www.vse.cz/english/).
 
 # Installation
 1. [Install nutch-plugin](https://github.com/KIZI/IRAPI/tree/master/nutch-plugin#installation)
