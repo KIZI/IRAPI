@@ -1,5 +1,5 @@
 # Dashboard
-A dashboard is a web application which helps to monitor results of the crawling and indexing processes for [nutch-plugin](https://github.com/KIZI/IRAPI/tree/master/nutch-plugin). The main purpose of the dashboard is to offer detailed and up-to-date statistics for the data stored in the index.
+A dashboard is a web application which helps to monitor results of the crawling and indexing processes for [nutch-plugin](https://github.com/KIZI/IRAPI/tree/master/nutch-plugin). The main purpose of the dashboard is to offer detailed and up-to-date statistics for the data stored in the index (Apache Solr/Lucene).
 
 It provides an overview of how many media objects have been identiﬁed in the crawled web pages. The dashboard distinguishes between the types of documents stored (web page, image, video, podcast). Data which are shown in the dashboard are retrieved directly from the index using appropriate queries, therefore the dashboard displays “live” index status.
 
