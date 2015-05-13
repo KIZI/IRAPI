@@ -19,9 +19,9 @@ There could be several web sites which do not have any media crawled and indexed
 
 Whitelist administration (adding of URL) is realized by remote modifying conﬁguration ﬁles, which are part of the Nutch crawling process.
 
-a. Seed ﬁle which is the main ﬁle to add URL to be processed.
-b. Regex-urlﬁlter to restrict URL by regular expression pattern.
-c. Whitelist-urlﬁlter to indicate which type of whitelisted URL is stored in index.
+1. Seed ﬁle which is the main ﬁle to add URL to be processed.
+2. Regex-urlﬁlter to restrict URL by regular expression pattern.
+3. Whitelist-urlﬁlter to indicate which type of whitelisted URL is stored in index.
 
 ![Process to apply all changes](https://raw.githubusercontent.com/KIZI/IRAPI/master/wikipictures/dashboard/ltv_dashboard_process.png)
 
